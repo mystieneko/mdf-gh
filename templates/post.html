@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %} {{ post['title'] }} - FlaskBlog {% endblock %}
+{% block content %}
+<div class="card post text-bg-light mt-3 mb-5">
+    <div class="card-body">
+        <div class="post-title">
+            <h2>{{ post['title'] }}</h2>
+            <a href="{{ url_for('edit', slug=post['slug']) }}">Edit</a>
+        </div>
+        <span class="badge time bg-primary">{{ post['created'] }}</span>
+        <div class="post-content">{{ to_html(post['content'])|safe }}</div>
+    </div>
+</div>
+<h2 class="text-center">Leave a comment!</h2>
+<div class="post-comments">
+    <script src="https://{{ giscus_instance }}/client.js"
+            data-repo="{{ giscus_repo }}"
+            data-repo-id="{{ giscus_repo_id }}"
+            data-category="{{ giscus_category }}"
+            data-category-id="{{ giscus_category_id }}"
+            data-mapping="{{ giscus_mapping }}"
+            data-strict="{{ giscus_strict }}"
+            data-reactions-enabled="{{ giscus_reactions_enabled }}"
+            data-emit-metadata="{{ giscus_emit_metadata }}"
+            data-input-position="{{ giscus_input_position }}"
+            data-theme="{{ giscus_theme }}"
+            data-lang="{{ giscus_lang }}"
+            data-loading="{{ giscus_loading }}"
+            crossorigin="anonymous"
+            async>
+    </script>
+</div>
+{% endblock %}

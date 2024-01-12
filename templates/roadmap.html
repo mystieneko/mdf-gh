@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %} Roadmap - FlaskBlog {% endblock %}
+{% block content %}
+<div class="card mb-5 mt-3">
+	<div class="card-body">
+		<h2>Roadmap</h2>
+		<p>Here's a brief roadmap of this project:</p>
+		<h3>Done:</h3>
+		<ul>
+			<li>Comment system (<a href="https://giscus.app" target="_blank">giscus</a>)</li>
+		</ul>
+		<h3>Considered:</h3>
+		<ul>
+			<li>Authentication</li>
+			<li>Image uploading</li>
+		</ul>
+		<h3>In progress:</h3>
+		<ul>
+			<li>Full Markdown support with <a href="https://github.com/Ionaru/easy-markdown-editor" target="_blank">EasyMDE</a> and <a href="https://github.com/lepture/mistune" target="_blank">Mistune</a></li>
+		</ul>
+	</div>
+</div>
+{% endblock %}

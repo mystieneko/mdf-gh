@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/index.css') }}">
+	<title>{% block title %} {% endblock %}</title>
+</head>
+<body>
+	<br>
+	<nav class="navbar navbar-expand-lg bg-body-tertiary">
+		<a class="navbar-brand" href="{{ url_for('index')}}">
+			<img src="{{url_for('static', filename='img/flask.svg')}}" width="24">
+			<span class="desktop">FlaskBlog</span>
+		</a>
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<a class="nav-link" href="{{url_for('about')}}">About</a>
+			<a class="nav-link" href="{{url_for('roadmap')}}">Roadmap</a>
+			<a class="d-flex align-items-center btn btn-primary" role="button" href="{{url_for('create')}}">New Post</a>
+		</div>
+	</nav>
+	<br>
+	<div class="container">
+		{% for message in get_flashed_messages() %}
+		<div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+			<input type="checkbox" id="alert-close" class="alert-close">
+			<div class="alert-content">{{ message }}</div>
+		</div>
+		{% endfor %}
+		{% block content %} {% endblock %}
+	</div>
+	<footer class="text-center" style="margin-bottom: 30px;">
+		<div class="container">
+			<a href="{{url_for('index')}}">Home</a>
+			<a href="{{url_for('roadmap')}}">Roadmap</a>
+			<a href="{{url_for('about')}}">About</a>
+			<a href="https://codeberg.org/mystie/flaskblog" target="_blank">Source code</a>
+			<p class="small"><br>Made with ❤ by <a href="https://matrix.to/#/@mystie:tchncs.de" class="text-reset text-decoration-none">mystieneko</a>. No rights reserved.</p>
+		</div>
+	</footer>
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const alertClose = document.querySelector('.alert-close');
+			const alert = document.querySelector('.alert');
+
+			alertClose.addEventListener('change', function() {
+				if (alertClose.checked) {
+					alert.classList.add('hide');
+				} else {
+					alert.classList.remove('hide');
+				}
+			});
+		});
+
+	</script>
+</body>
+</html>
