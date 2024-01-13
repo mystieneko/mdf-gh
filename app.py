@@ -19,7 +19,7 @@ def getPost(slug):
         abort(404)
     return post
 
-def generate_slug(title):
+def generateSlug(title):
     slug = re.sub(r'[^\w\s]', '', title)
     slug = re.sub(r'\s+', '-', slug)
     slug = slug.lower()
@@ -39,6 +39,7 @@ def index():
 @app.route('/<slug>')
 def post(slug):
     post = getPost(slug)
+    # this is bad and i could've probably done it better
     giscus_instance = os.getenv('GISCUS_INSTANCE')
     giscus_repo = os.getenv('GISCUS_REPO')
     giscus_repo_id = os.getenv('GISCUS_REPO_ID')
@@ -60,7 +61,7 @@ def create():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        slug = generate_slug(title)
+        slug = generateSlug(title)
 
         if len(title) < 5 and title:
             flash('Title is too short!')
@@ -83,12 +84,14 @@ def edit(slug):
         title = request.form['title']
         content = request.form['content']
 
-        if not title:
+        if len(title) < 5 and title:
+            flash('Title is too short!')
+        elif not title:
             flash('Title is required!')
         else:
             conn = getDbConnection()
-            conn.execute('UPDATE posts SET title = ?, content = ?',
-                         (title, content))
+            conn.execute('UPDATE posts SET title = ?, content = ?' ' WHERE slug = ?',
+                         (title, content, slug))
             conn.commit()
             conn.close()
             return redirect(url_for('index'))
