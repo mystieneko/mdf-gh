@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %} Register - {{ config.SITE_NAME }} {% endblock %}
+{% block content %}
+
+<div class="card mb-5 mt-3">
+	<div class="card-body">
+		<h2 class="card-title">Register</h2>
+		<form method="post" style="margin-top: 10px;">
+			<div class="form-group" style="margin-bottom: 10px;">
+				<label for="name">Username</label>
+				<input type="text" name="name"
+				placeholder="johndoe" class="form-control"
+				value="{{ request.form['name'] }}"></input>
+			</div>
+			<div class="form-group" style="margin-bottom: 10px;">
+				<label for="email">Email</label>
+				<input type="email" name="email"
+				placeholder="johndoe@example.com" class="form-control"
+				value="{{ request.form['email'] }}"></input>
+			</div>
+			<div class="form-group" style="margin-bottom: 10px;">
+				<label for="password">Password</label>
+				<input type="password" name="password"
+				placeholder="Password" class="form-control"
+				value="{{ request.form['password'] }}"></input>
+			</div>
+
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary mt-2">Register</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

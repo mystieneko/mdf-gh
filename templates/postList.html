@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Posts - {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+{% for post in posts %}
+<div class="card text-bg-light mt-2 mb-2">
+	<div class="card-body" style="display: flex;justify-content: space-between;align-items: center;">
+		<div class="post-info">
+			<a style="max-width: fit-content; display: block;" class="text-decoration-none" href="{{ url_for('post', slug=post['slug']) }}">
+				<h2>{{ post['title'] }}</h2>
+			</a>
+			<span style="color: var(--muted); font-size: small;">{{ post.created }}</span>
+		</div>
+		<div class="actions">
+			<a href="{{ url_for('post', slug=post['slug']) }}" class="mt-2 me-2 btn">View</a>
+			{% if session['user'] %}
+			<a href="{{ url_for('edit', slug=post['slug']) }}" class="mt-2">Edit</a>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endfor %}
+{% endblock %}

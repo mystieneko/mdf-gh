@@ -4,20 +4,36 @@
 	<!-- Required meta tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="shortcut icon" href="{{ config.ICON_URL }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/index.css') }}">
 	<title>{% block title %} {% endblock %}</title>
 </head>
 <body>
 	<br>
 	<nav class="navbar navbar-expand-lg bg-body-tertiary">
-		<a class="navbar-brand" href="{{ url_for('index')}}">
-			<img src="{{url_for('static', filename='img/flask.svg')}}" width="24">
-			<span class="desktop">FlaskBlog</span>
-		</a>
-		<div class="collapse navbar-collapse" id="navbarNav">
-			<a class="nav-link" href="{{url_for('about')}}">About</a>
-			<a class="nav-link" href="{{url_for('roadmap')}}">Roadmap</a>
-			<a class="d-flex align-items-center btn btn-primary" role="button" href="{{url_for('create')}}">New Post</a>
+		{% if session['user'] %}
+		<div class="logged-in">
+			<p>Logged in as <b>{{ session['user'] }}</b> · <a href="/logout">Logout</a></p>
+		</div>
+		{% endif %}
+		<div class="main-content" style="cursor: default;">
+			<a class="navbar-brand" href="{{ url_for('index')}}">
+				<img src="{{ config.ICON_URL }}" width="24">
+				<span class="desktop">{{ config.SITE_NAME }}</span>
+			</a>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<a class="nav-link" href="{{url_for('index')}}">Home</a>
+				<a class="nav-link" href="{{url_for('posts')}}">Posts</a>
+				<span>·</span>
+				{% if session['user'] %}
+				<a class="d-flex align-items-center btn btn-primary" role="button" href="{{url_for('create')}}">New Post</a>
+				{% else %}
+				<a href="{{ url_for('login') }}">Login</a>
+				{% if config.REGISTRATIONS_OPENED == 1 %}
+				<a href="{{ url_for('register') }}">Register</a>
+				{% endif %}
+				{% endif %}
+			</div>
 		</div>
 	</nav>
 	<br>
@@ -32,10 +48,11 @@
 	</div>
 	<footer class="text-center" style="margin-bottom: 30px;">
 		<div class="container">
-			<a href="{{url_for('index')}}">Home</a>
-			<a href="{{url_for('roadmap')}}">Roadmap</a>
-			<a href="{{url_for('about')}}">About</a>
-			<a href="https://codeberg.org/mystie/flaskblog" target="_blank">Source code</a>
+			<div class="links" style="cursor: default;">
+				<a href="{{url_for('roadmap')}}">Roadmap</a>
+				<a href="{{url_for('about')}}">About</a>
+				<a href="https://codeberg.org/mystie/flaskblog" target="_blank">Source code</a>
+			</div>
 			<p class="small"><br>Made with ❤ by <a href="https://matrix.to/#/@mystie:tchncs.de" class="text-reset text-decoration-none">mystieneko</a>. No rights reserved.</p>
 		</div>
 	</footer>

@@ -1,24 +1,9 @@
 {% extends 'base.html' %}
-{% block title %}Home - FlaskBlog{% endblock %}
+{% block title %}Home - {{ config.SITE_NAME }}{% endblock %}
 {% block content %}
-<h1 class="display-5 text-center mb-2 mt-2">Posts</h1>
-<!-- <div class="d-flex justify-content-center">
-	<a class="btn btn-primary btn-sm" href="{{url_for('create')}}">Create a new post</a>
-</div> -->
-{% for post in posts %}
 <div class="card text-bg-light mt-2 mb-2">
-	<div class="card-body" style="display: flex;justify-content: space-between;align-items: center;">
-		<div class="post-info">
-			<a style="max-width: fit-content; display: block;" class="text-decoration-none" href="{{ url_for('post', slug=post['slug']) }}">
-				<h2>{{ post['title'] }}</h2>
-			</a>
-			<span style="color: var(--muted); font-size: small;">{{ post.created }}</span>
-		</div>
-		<div class="actions">
-			<a href="{{ url_for('post', slug=post['slug']) }}" class="mt-2 me-2 btn">View</a>
-			<a href="{{ url_for('edit', slug=post['slug']) }}" class="mt-2">Edit</a>
-		</div>
+	<div class="card-body">
+		<p>{{ config.BLOG_DESC or to_html(config.DEFAULT_DESC)|safe }}</p>
 	</div>
 </div>
-{% endfor %}
 {% endblock %}
