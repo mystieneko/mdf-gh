@@ -1,0 +1,24 @@
+@font-face {
+	font-family: "Jetbrains Mono";
+	src: local("Jetbrains Mono"), url("../../fonts/jbmono.woff2");
+}
+
+:root {
+	--bg: #00142d;
+	--second-bg: #002048;
+	--third-bg: #00377b;
+	--code-bg: #00377b;
+	--color: #fff;
+	--accent: #07c3f2;
+	--btn-bg: var(--accent);
+	--btn-color: var(--bg);
+	--btn-hover-bg: #0484a4;
+	--btn-hover-color: var(--bg);
+	--muted: #b9b9b9;
+	--input-outline: 1px solid var(--accent);
+	--link-hover: #0484a4;
+	--font: "Jetbrains Mono";
+	--content-font: sans-serif;
+	--border-radius: 0;
+	--btn-padding: 1px 3px;
+}

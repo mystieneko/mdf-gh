@@ -1,0 +1,73 @@
+@font-face {
+	font-family: "Cantarell";
+	font-display: block;
+	font-weight: 100 800;
+	src: local("Cantarell"), url("https://proxy.mangaraiku.eu.org/?url=https://nano.lgbt/font/cantarell.woff2") format("woff2-variations");
+}
+
+:root {
+	--bg: #f8f8f8;
+	--second-bg: #fff; 
+	--third-bg: #f0f0f0;
+	--code-bg: #ddd;
+	--color: #222;
+	--accent: #0071b5;
+	--btn-bg: #ddd;
+	--btn-color: #222;
+	--btn-hover-bg: #ccc;
+	--btn-hover-color: #222; 
+	--btn-danger-bg: #e60000;
+	--btn-danger-bg-hover: #cc0000;
+	--muted: #888;
+	--input-outline: 1px solid #ddd;
+	--link-hover: #005380;
+	--font: "Cantarell";
+	--content-font: sans-serif;
+	--border-radius: 3px;
+	--btn-padding: 3px 12px;
+}
+
+code {
+	background: var(--second-bg);
+}
+.nav-link, .navbar-collapse span {
+	font-weight: 500;
+	text-decoration: none;
+}
+.nav-link, .navbar-collapse span, footer .links a {
+	margin: 0 2px;
+}
+.nav-link:last-child {
+	margin: 0;
+}
+
+.card-body .actions a {
+	background: var(--btn-bg);
+	color: var(--btn-color);
+	padding: var(--btn-padding);
+	border-radius: var(--border-radius);
+	text-decoration: none;
+}
+.card-body .actions a:hover {
+	background: var(--btn-hover-bg);
+	color: var(--btn-hover-color);
+}
+
+.btn-danger {
+	background: var(--btn-danger-bg);
+}
+.btn-danger:hover {
+	background: var(--btn-danger-bg-hover);
+}
+.form-group .btn {
+	--btn-padding: 0.6em 1.2em;
+}
+
+@media (max-width: 800px) {
+	.form-group .btn, .form-group .btn-danger, .delete {
+		width: 100%;
+	}
+	.form-actions {
+		flex-direction: column !important;
+	}
+}

@@ -1,12 +1,11 @@
-import sqlite3, mistune, os, re
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, session
+from flask_caching import Cache
 from markupsafe import Markup
-import mysql.connector
 from werkzeug.exceptions import abort
 from functools import wraps
-from config import Config
-import bcrypt
+from config import Config, GiscusConfig
+import mysql.connector, mistune, os, re, bcrypt, time
 
 load_dotenv()
 
@@ -21,7 +20,7 @@ def getDbConnection():
         user=db_user,
         password=db_pass,
         database=db_name,
-        pool_name="dbpool", pool_size=10,
+        pool_name="dbpool",
         autocommit=True
     )
     return conn
@@ -63,20 +62,45 @@ def generateSlug(title):
     
     return slug
 
+cache_config = {
+    "DEBUG": True,          # some Flask specific configs
+    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 300
+}
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("APP_SECRET")
 app.config.from_object(Config)
+app.config.from_mapping(cache_config)
+cache = Cache(app)
 
-from flask import session
+def cached(route):
+    if app.config['CACHE_ENABLED']:
+        return cache.cached(timeout=app.config['POSTS_CACHE_TIMEOUT'])(route)
+    return route
+
+user_requests = {}
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if app.config["REGISTRATIONS_OPENED"] == 1:
+    if app.config["REGISTRATIONS_OPENED"]:
         if session.get('user'):
             flash("Why are you trying to register while logged in???")
             return redirect(url_for('index'))
 
         if request.method == 'POST':
+            user_ip = request.remote_addr
+
+            now = time.time()
+            if user_ip not in user_requests:
+                user_requests[user_ip] = []
+
+            user_requests[user_ip] = [t for t in user_requests[user_ip] if now - t < 86400]
+
+            if len(user_requests[user_ip]) >= app.config['REGISTER_REQUEST_LIMIT']:
+                abort(429)
+
+            user_requests[user_ip].append(now)
 
             name = request.form['name']
             email = request.form['email']
@@ -102,7 +126,7 @@ def register():
 
             cursor.close()
             conn.close()
-            flash(Markup('"{}" was registered! If you want it approved, contact <a href="mailto:' + app.config["ADMIN_EMAIL"] + '">the admin</a>').format(name))
+            flash(Markup('"{}" was registered! If you want it approved, <a href="' + app.config["ADMIN_CONTACT"] + '">contact the admin</a>').format(name))
             return redirect(url_for('index'))
 
         return render_template('register.html')
@@ -154,27 +178,25 @@ def index():
     return render_template('index.html', to_html=mistune.html)
 
 @app.route('/posts')
+@cached
 def posts():
-
     conn = getDbConnection()
     cursor = conn.cursor()
 
-    # Query posts
     cursor.execute('''SELECT p.id, p.title, p.slug, p.content, p.created, 
-                    DATE_FORMAT(p.created, '%m/%d/%Y') AS created_date  
-                    FROM posts p
-                    ORDER BY p.created DESC''')
-    
-    # Fetch and format posts
+        DATE_FORMAT(p.created, '%m/%d/%Y') AS created_date  
+        FROM posts p
+        ORDER BY p.created DESC''')
+
     posts = []
     for row in cursor:
         post = {
-           'id': row[0],
-           'title': row[1],
-           'slug': row[2],
-           'content': row[3],
-           'created': row[4],
-           'created_formatted': row[5]
+            'id': row[0],
+            'title': row[1],
+            'slug': row[2],
+            'content': row[3],
+            'created': row[4],
+            'created_formatted': row[5]
         }
         posts.append(post)
 
@@ -184,27 +206,14 @@ def posts():
     return render_template('postList.html', posts=posts)
 
 @app.route('/<slug>')
+@cached
 def post(slug):
     post = getPost(slug)
-
     if post is None:
-         abort(404)
-    # this is bad and i could've probably done it better
-    giscus_instance = os.getenv('GISCUS_INSTANCE')
-    giscus_repo = os.getenv('GISCUS_REPO')
-    giscus_repo_id = os.getenv('GISCUS_REPO_ID')
-    giscus_category = os.getenv('GISCUS_CATEGORY')
-    giscus_category_id = os.getenv('GISCUS_CATEGORY_ID')
-    giscus_mapping = os.getenv('GISCUS_MAPPING')
-    giscus_strict = os.getenv('GISCUS_STRICT')
-    giscus_reactions_enabled = os.getenv('GISCUS_REACTIONS_ENABLED')
-    giscus_emit_metadata = os.getenv('GISCUS_EMIT_METADATA')
-    giscus_input_position = os.getenv('GISCUS_INPUT_POSITION')
-    giscus_theme = os.getenv('GISCUS_THEME')
-    giscus_lang = os.getenv('GISCUS_LANG')
-    giscus_loading = os.getenv('GISCUS_LOADING')
+        abort(404)
 
-    return render_template('post.html', post=post, to_html=mistune.html, giscus_instance=giscus_instance, giscus_repo=giscus_repo, giscus_repo_id=giscus_repo_id, giscus_category=giscus_category, giscus_category_id=giscus_category_id, giscus_mapping=giscus_mapping, giscus_strict=giscus_strict, giscus_reactions_enabled=giscus_reactions_enabled, giscus_emit_metadata=giscus_emit_metadata, giscus_input_position=giscus_input_position, giscus_theme=giscus_theme, giscus_lang=giscus_lang, giscus_loading=giscus_loading)
+    print(GiscusConfig)
+    return render_template('post.html', post=post, to_html=mistune.html, giscus=GiscusConfig)
 
 @app.route('/create', methods=('GET', 'POST'))
 def create():
@@ -217,6 +226,8 @@ def create():
 
             if len(title) < 5:
                 flash('Title is too short!')
+            if len(title) > 150:
+                flash('Title is too long! (' + str(len(title)) + " characters out of 150 allowed)")
 
             else:
                 conn = getDbConnection()

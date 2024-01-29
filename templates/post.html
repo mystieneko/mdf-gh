@@ -6,7 +6,7 @@
 		<div class="post-title">
 			<h2>{{ post['title'] }}</h2>
 			{% if session['user'] %}
-			<a href="{{ url_for('edit', slug=post['slug']) }}">Edit</a>
+			<a class="btn" href="{{ url_for('edit', slug=post['slug']) }}">Edit</a>
 			{% endif %}
 		</div>
 		<span class="badge time bg-primary">{{ post['created'] }}</span>
@@ -15,19 +15,19 @@
 </div>
 <h2 class="text-center">Leave a comment!</h2>
 <div class="post-comments">
-	<script src="https://{{ giscus_instance }}/client.js"
-		data-repo="{{ giscus_repo }}"
-		data-repo-id="{{ giscus_repo_id }}"
-		data-category="{{ giscus_category }}"
-		data-category-id="{{ giscus_category_id }}"
-		data-mapping="{{ giscus_mapping }}"
-		data-strict="{{ giscus_strict }}"
-		data-reactions-enabled="{{ giscus_reactions_enabled }}"
-		data-emit-metadata="{{ giscus_emit_metadata }}"
-		data-input-position="{{ giscus_input_position }}"
-		data-theme="{{ giscus_theme }}"
-		data-lang="{{ giscus_lang }}"
-		data-loading="{{ giscus_loading }}"
+	<script src="https://{{ giscus.INSTANCE }}/client.js"
+		data-repo="{{ giscus.REPO }}"
+		data-repo-id="{{ giscus.REPO_ID }}"
+		data-category="{{ giscus.CATEGORY }}"
+		data-category-id="{{ giscus.CATEGORY_ID }}"
+		data-mapping="{{ giscus.MAPPING }}"
+		data-strict="{{ giscus.STRICT }}"
+		data-reactions-enabled="{{ giscus.REACTIONS_ENABLED }}"
+		data-emit-metadata="{{ giscus.EMIT_METADATA }}"
+		data-input-position="{{ giscus.INPUT_POSITION }}"
+		data-theme="{{ giscus.THEME }}"
+		data-lang="{{ giscus.LANG }}"
+		data-loading="{{ giscus.LOADING }}"
 		crossorigin="anonymous"
 		async>
 	</script>

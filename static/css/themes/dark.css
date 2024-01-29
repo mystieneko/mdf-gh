@@ -1,0 +1,73 @@
+@font-face {
+	font-family: "Cantarell";
+	font-display: block;
+	font-weight: 100 800;
+	src: local("Cantarell"), url("https://proxy.mangaraiku.eu.org/?url=https://nano.lgbt/font/cantarell.woff2") format("woff2-variations");
+}
+
+:root {
+	--bg: #161616;
+	--second-bg: #252525;
+	--third-bg: #353535;
+	--code-bg: #222;
+	--color: #fff;
+	--accent: #42adee;
+	--btn-bg: rgb(74, 74, 74);
+	--btn-color: var(--color);
+	--btn-hover-bg: rgb(85, 85, 85);
+	--btn-hover-color: var(--color);
+	--btn-danger-bg: #930000;
+	--btn-danger-bg-hover: #710000;
+	--muted: #b9b9b9;
+	--input-outline: 1px solid var(--btn-hover-bg);
+	--link-hover: #0071b5;
+	--font: "Cantarell";
+	--content-font: sans-serif;
+	--border-radius: 3px;
+	--btn-padding: 3px 12px;
+}
+
+code {
+	background: var(--bg);
+}
+.nav-link, .navbar-collapse span {
+	font-weight: 500;
+	text-decoration: none;
+}
+.nav-link, .navbar-collapse span, footer .links a {
+	margin: 0 2px;
+}
+.nav-link:last-child {
+	margin: 0;
+}
+
+.card-body .actions a {
+	background: var(--btn-bg);
+	color: var(--btn-color);
+	padding: var(--btn-padding);
+	border-radius: var(--border-radius);
+	text-decoration: none;
+}
+.card-body .actions a:hover {
+	background: var(--btn-hover-bg);
+	color: var(--btn-hover-color);
+}
+
+.btn-danger {
+	background: var(--btn-danger-bg);
+}
+.btn-danger:hover {
+	background: var(--btn-danger-bg-hover);
+}
+.form-group .btn {
+	--btn-padding: 0.6em 1.2em;
+}
+
+@media (max-width: 800px) {
+	.form-group .btn, .form-group .btn-danger, .delete {
+		width: 100%;
+	}
+	.form-actions {
+		flex-direction: column !important;
+	}
+}

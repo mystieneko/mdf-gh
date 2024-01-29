@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{{config.THEME}}">
 <head>
 	<!-- Required meta tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="shortcut icon" href="{{ config.ICON_URL }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/index.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/base.css') }}">
+	{% set theme = "css/themes/" + config.THEME + ".css" %}
+	<link rel="stylesheet" href="{{ url_for('static', filename=theme) }}">
 	<title>{% block title %} {% endblock %}</title>
 </head>
 <body>
@@ -17,7 +19,7 @@
 		</div>
 		{% endif %}
 		<div class="main-content" style="cursor: default;">
-			<a class="navbar-brand" href="{{ url_for('index')}}">
+			<a class="navbar-brand nav-link" href="{{ url_for('index')}}">
 				<img src="{{ config.ICON_URL }}" width="24">
 				<span class="desktop">{{ config.SITE_NAME }}</span>
 			</a>
@@ -26,11 +28,11 @@
 				<a class="nav-link" href="{{url_for('posts')}}">Posts</a>
 				<span>·</span>
 				{% if session['user'] %}
-				<a class="d-flex align-items-center btn btn-primary" role="button" href="{{url_for('create')}}">New Post</a>
+				<a class="nav-link btn btn-primary" role="button" href="{{url_for('create')}}">New Post</a>
 				{% else %}
-				<a href="{{ url_for('login') }}">Login</a>
+				<a class="nav-link" href="{{ url_for('login') }}">Login</a>
 				{% if config.REGISTRATIONS_OPENED == 1 %}
-				<a href="{{ url_for('register') }}">Register</a>
+				<a class="nav-link" href="{{ url_for('register') }}">Register</a>
 				{% endif %}
 				{% endif %}
 			</div>
