@@ -212,7 +212,6 @@ def post(slug):
     if post is None:
         abort(404)
 
-    print(GiscusConfig)
     return render_template('post.html', post=post, to_html=mistune.html, giscus=GiscusConfig)
 
 @app.route('/create', methods=('GET', 'POST'))
