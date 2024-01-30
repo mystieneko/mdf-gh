@@ -2,7 +2,7 @@
 	font-family: "Cantarell";
 	font-display: block;
 	font-weight: 100 800;
-	src: local("Cantarell"), url("https://proxy.mangaraiku.eu.org/?url=https://nano.lgbt/font/cantarell.woff2") format("woff2-variations");
+	src: local("Cantarell"), url("../../fonts/cantarell.woff2") format("woff2-variations");
 }
 
 :root {
