@@ -225,7 +225,7 @@ def create():
 
             if len(title) < 5:
                 flash('Title is too short!')
-            if len(title) > 150:
+            if len(title) > app.config["TITLE_LENGTH_LIMIT"]:
                 flash('Title is too long! (' + str(len(title)) + " characters out of 150 allowed)")
 
             else:
