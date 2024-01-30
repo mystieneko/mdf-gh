@@ -9,10 +9,10 @@ import mysql.connector, mistune, os, re, bcrypt, time
 
 load_dotenv()
 
-db_user = os.getenv("DB_USER")
-db_pass = os.getenv("DB_PASS")
-db_name = os.getenv("DB_NAME")
-db_host = os.getenv("DB_HOST")
+db_user = os.environ.get("DB_USER")
+db_pass = os.environ.get("DB_PASS")
+db_name = os.environ.get("DB_NAME")
+db_host = os.environ.get("DB_HOST")
 
 def getDbConnection():
     conn = mysql.connector.connect(
@@ -69,7 +69,7 @@ cache_config = {
 }
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv("APP_SECRET")
+app.config['SECRET_KEY'] = os.environ.get("APP_SECRET")
 app.config.from_object(Config)
 app.config.from_mapping(cache_config)
 cache = Cache(app)
