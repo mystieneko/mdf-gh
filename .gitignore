@@ -1,3 +1,7 @@
 .env
+config.json
+giscusConfig.json
+static/css/themes/purpledark.css
+flb*.zip
+__pycache__/
 venv/
-__pycache__

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %} AdminCP {% endblock %}
+
+{% block content %}
+<div class="card">
+	<div class="card-body">
+		<h1>AdminCP</h1>
+		<h2>Configuration</h2>
+		<a href="{{url_for('admin_currentconf')}}" class="btn">View</a>
+		<br><br>
+		<h3>Main Configuration</h3>
+		<form action="{{ url_for('admin') }}" method="POST">
+			{% for key, value in config_vars.items() %}
+			<div class="form-group">
+				<label for="{{ key }}">{{ key }}</label>
+				<input class="form-control" type="text" id="{{ key }}" name="{{ key }}" value="{{ value }}">
+			</div>
+			{% endfor %}
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary">Save changes</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

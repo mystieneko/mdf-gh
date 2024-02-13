@@ -1,45 +1,41 @@
 {% extends 'base.html' %}
 {% block title %} Edit "{{ post['title'] }}" {% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
 <script src="{{ url_for('static', filename='js/easymde.min.js') }}"></script>
-<div class="card mt-3">
+
+<div class="card">
 	<div class="card-body">
 		<h2 class="card-title">Edit "{{ post['title'] }}"</h2>
 		<form method="post">
 			<div class="form-group">
-				<label for="title">Title</label>
-				<input type="text" name="title" placeholder="Post title"
-				class="form-control"
+				<label for="title" data-r>Title</label>
+				<input type="text" name="title" placeholder="Post title" class="form-control"
 				value="{{ request.form['title'] or post['title'] }}">
-			</input>
-		</div>
-		<div class="form-group">
-			<label for="slug">Unique slug</label>
-			<input style="margin-bottom: 0" type="text" disabled name="slug" class="form-control"
-			value="{{ post['slug'] }}">
-		</input>
-		<small style="margin-bottom: 10px; opacity: 0.7;">Slug is generated from the title and cannot be changed</small>
-	</div>
-	<div class="form-group">
-		<label for="content">Content</label>
-		<textarea name="content" id="post-content-input" placeholder="Post content"
-		class="form-control">{{ request.form['content'] or post['content'] }}</textarea>
-	</div>
+			</div>
+			<div class="form-group">
+				<label for="slug">Unique slug</label>
+				<input type="text" name="slug" class="form-control" value="{{ post['slug'] }}">
+				<!-- <small style="margin-bottom: 10px; opacity: 0.7;">Slug is generated from the title and cannot be changed</small> -->
+			</div>
+			<div class="form-group">
+				<label for="content">Content</label>
+				<textarea name="content" id="post-content-input" placeholder="Post content" class="form-control">{{ request.form['content'] or post['content'] }}</textarea>
+			</div>
 
-	<div class="form-group form-actions" style="flex-direction: row; justify-content: space-between; align-items: center;">
-		<button type="submit" class="btn btn-primary mt-2">Save & return</button>
-	</form>
+			<div class="form-group form-actions" style="flex-direction: row; justify-content: space-between; align-items: center;">
+				<button type="submit" class="btn btn-primary mt-2">Save & return</button>
+		</form>
 
-	<form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
-		<input type="submit" value="Delete Post"
-		class="btn btn-danger mt-2"
-		onclick="return confirm('Are you sure you want to delete this post?')">
-	</form>
+		<form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
+			<input type="submit" value="Delete Post" class="btn btn-danger mt-2" onclick="return confirm('Are you sure you want to delete this post?')">
+		</form>
+	</div>
+	</div>
 </div>
-</form>
-</div>
-</div>
+{% endblock %}
+{% block scripts %}
 <script>
 	const easyMDE = new EasyMDE({element: document.getElementById('post-content-input')});
 </script>

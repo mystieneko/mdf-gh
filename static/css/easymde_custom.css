@@ -23,7 +23,7 @@
 }
 .CodeMirror-gutters {
     border-right: 1px solid #ddd;
-    background-color: #f7f7f7;
+    background-color: var(--bg);
     white-space: nowrap;
 }
 .CodeMirror-linenumber {
@@ -197,7 +197,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
     background: rgba(255, 150, 0, 0.3);
 }
 .CodeMirror-activeline-background {
-    background: #e8f2ff;
+    background: var(--bg);
 }
 .CodeMirror {
     position: relative;
@@ -368,10 +368,10 @@ div.CodeMirror-dragcursors {
     visibility: visible;
 }
 .CodeMirror-selected {
-    background: #d9d9d9;
+    background: var(--third-bg);
 }
 .CodeMirror-focused .CodeMirror-selected {
-    background: #d7d4f0;
+    background: var(--third-bg);
 }
 .CodeMirror-focused {
 	outline: var(--input-outline);
@@ -405,7 +405,8 @@ div.CodeMirror-dragcursors {
     content: "";
 }
 span.CodeMirror-selectedtext {
-    background: 0 0;
+/*    background: Highlight !important;
+    color: HighlightText !important;*/
 }
 .EasyMDEContainer {
     display: block;
@@ -458,9 +459,9 @@ span.CodeMirror-selectedtext {
 .EasyMDEContainer .CodeMirror-placeholder {
     opacity: 0.5;
 }
-.EasyMDEContainer .CodeMirror-focused .CodeMirror-selected {
-    background: #d9d9d9;
-}
+/*.EasyMDEContainer .CodeMirror-focused .CodeMirror-selected {
+    background: var(--second-bg);
+}*/
 .editor-toolbar {
     position: relative;
     -webkit-user-select: none;
@@ -631,7 +632,7 @@ span.CodeMirror-selectedtext {
     overflow: auto;
     display: none;
     box-sizing: border-box;
-    border: 1px solid var(--third-bg);
+    border-left: 1px solid var(--third-bg);
     word-wrap: break-word;
 }
 .editor-preview-active-side {
@@ -658,7 +659,8 @@ span.CodeMirror-selectedtext {
 }
 .editor-preview table td,
 .editor-preview table th {
-    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    background: var(--third-bg);
     padding: 5px;
 }
 .cm-s-easymde .cm-tag {

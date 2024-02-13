@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-db_user = os.getenv("DB_USER")
-db_pass = os.getenv("DB_PASS")
-db_name = os.getenv("DB_NAME")
-db_host = os.getenv("DB_HOST")
+db_user = os.environ.get("DB_USER")
+db_pass = os.environ.get("DB_PASS")
+db_name = os.environ.get("DB_NAME")
+db_host = os.environ.get("DB_HOST")
 
 # Database connection config 
 config = {
@@ -36,16 +36,16 @@ else:
     cursor.close()
 
   cnx.commit()
-  cursor = cnx.cursor()
+  # cursor = cnx.cursor()
   
-  # Insert sample data
-  add_post = ("INSERT INTO posts " 
-              "(title, slug, content) "
-              "VALUES (%s, %s, %s)")
-  data = ('Example post', 'example-post', 'Content goes here')    
+  # # Insert sample data
+  # add_post = ("INSERT INTO posts " 
+  #             "(title, slug, content) "
+  #             "VALUES (%s, %s, %s)")
+  # data = ('Example post', 'example-post', 'Content goes here')    
   
-  cursor.execute(add_post, data)
-  cnx.commit()
+  # cursor.execute(add_post, data)
+  # cnx.commit()
   
   cursor.close()
   cnx.close()

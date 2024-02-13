@@ -1,0 +1,19 @@
+{
+    "BLOG_NAME": "Blog Name",
+    "BLOG_DESC": "",
+    "BLOG_DOMAIN": "http://127.0.0.1:5000",
+    "DEFAULT_DESC": "If you see this message, congratulations, FlaskBlog is installed successfully!  <br>  **Further configuration is required.**<br>You can now register your account, give it posting perms via [phpMyAdmin](https://www.phpmyadmin.net/) and start writing!<br>You can also disable registration afterwards to not let random people register to your blog.<br>**Note:** This is the default description, which appears if `BLOG_DESC` variable is not set.<br>",
+    "REGISTRATIONS_OPENED": "True",
+    "REGISTER_REQUEST_LIMIT": "10",
+    "TITLE_LENGTH_LIMIT": "300",
+    "SLUG_LENGTH_LIMIT": "50",
+    "THEME": "light",
+    "ICON_URL": "/static/img/flask.svg",
+    "ADMIN_CONTACT": "",
+    "CACHE_ENABLED": "True",
+    "CACHE_TIMEOUT": "300",
+    "SHOW_PAGES": "True",
+    "COMMENTS_ENABLED": "False",
+    "POST_FOOTER_ENABLED": "True",
+    "POST_FOOTER": "<br><br>[RSS](/feed)"
+}

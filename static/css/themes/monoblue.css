@@ -21,4 +21,14 @@
 	--content-font: sans-serif;
 	--border-radius: 0;
 	--btn-padding: 1px 3px;
+	--body-max-width: 800px;
+	--container-max-width: 800px;
+	--image-max-width: 100%;
+	--image-max-height: 400px;
+	--transition: 0s;
+	--post-content-color: #e1e1e1;
+}
+
+menu menuitem a:hover:not(#logged-in-menu .drop-open) {
+	color: var(--bg) !important;
 }

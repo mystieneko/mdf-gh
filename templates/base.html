@@ -1,37 +1,65 @@
 <!DOCTYPE html>
-<html lang="en" class="{{config.THEME}}">
+<html lang="en" class="{{config['THEME']}}">
 <head>
 	<!-- Required meta tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="shortcut icon" href="{{ config.ICON_URL }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/base.css') }}">
-	{% set theme = "css/themes/" + config.THEME + ".css" %}
+	{% set theme = "css/themes/" + config['THEME'] + ".css" %}
 	<link rel="stylesheet" href="{{ url_for('static', filename=theme) }}">
 	<title>{% block title %} {% endblock %}</title>
 </head>
 <body>
 	<br>
-	<nav class="navbar navbar-expand-lg bg-body-tertiary">
+	<nav class="navbar">
 		{% if session['user'] %}
 		<div class="logged-in">
-			<p>Logged in as <b>{{ session['user'] }}</b> · <a href="/logout">Logout</a></p>
+			<div>
+				Logged in as 
+				<nav style="display: inline-block;">
+					<menu>
+						<menuitem id="logged-in-menu">
+							<a class="drop-open" style="padding: 0;margin: 0;font-size: 12px;background: 0 0 !important;display: inline-flex;align-items: center;gap: 3px;color: inherit;"><b>{{ session['user'] }}</b> <svg width="12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"></path></svg></a>
+							<menu>
+								{% if session['user_role'] == 'admin' %}<menuitem><a href="{{url_for('admin')}}">AdminCP</a></menuitem>{% endif %}
+								<menuitem><a href="{{url_for('accountSettings')}}">Account settings</a></menuitem>
+								<menuitem><a href="{{url_for('logout')}}">Logout</a></menuitem>
+							</menu>
+						</menuitem>
+					</menu>
+				</nav>
+			</div>
 		</div>
 		{% endif %}
 		<div class="main-content" style="cursor: default;">
 			<a class="navbar-brand nav-link" href="{{ url_for('index')}}">
 				<img src="{{ config.ICON_URL }}" width="24">
-				<span class="desktop">{{ config.SITE_NAME }}</span>
+				<span class="desktop">{{ config.BLOG_NAME }}</span>
 			</a>
-			<div class="collapse navbar-collapse" id="navbarNav">
-				<a class="nav-link" href="{{url_for('index')}}">Home</a>
+			<div class="navbar-collapse" id="navbarNav">
+				<!-- <a class="nav-link" href="{{url_for('index')}}">Home</a> -->
 				<a class="nav-link" href="{{url_for('posts')}}">Posts</a>
+				{% if config.SHOW_PAGES == "True" or session['user'] %}
+				<a class="nav-link" href="{{url_for('pages')}}">Pages</a>
+				{% endif %}
+				{% if session['user'] == 'writer' or session['user'] == 'admin' %}
 				<span>·</span>
-				{% if session['user'] %}
-				<a class="nav-link btn btn-primary" role="button" href="{{url_for('create')}}">New Post</a>
+				<nav style="display: inline-block;">
+					<menu>
+						<menuitem>
+							<a class="btn drop-open">New...</a>
+							<menu>
+								<menuitem><a href="{{url_for('create')}}">Post</a></menuitem>
+								<menuitem><a href="{{url_for('createPage')}}">Page</a></menuitem>
+							</menu>
+						</menuitem>
+					</menu>
+				</nav>
 				{% else %}
+				<span>·</span>
 				<a class="nav-link" href="{{ url_for('login') }}">Login</a>
-				{% if config.REGISTRATIONS_OPENED == 1 %}
+				{% if config.REGISTRATIONS_OPENED == "True" %}
 				<a class="nav-link" href="{{ url_for('register') }}">Register</a>
 				{% endif %}
 				{% endif %}
@@ -51,13 +79,12 @@
 	<footer class="text-center" style="margin-bottom: 30px;">
 		<div class="container">
 			<div class="links" style="cursor: default;">
-				<a href="{{url_for('roadmap')}}">Roadmap</a>
-				<a href="{{url_for('about')}}">About</a>
-				<a href="https://codeberg.org/mystie/flaskblog" target="_blank">Source code</a>
+				<a href="{{url_for('rssFeed')}}">RSS feed</a>
 			</div>
-			<p class="small"><br>Made with ❤ by <a href="https://matrix.to/#/@mystie:tchncs.de" class="text-reset text-decoration-none">mystieneko</a>. No rights reserved.</p>
+			<p class="small" style="cursor: default;"><br>Powered by FlaskBlog {{ version }} <span>·</span> <a href="{{url_for('about')}}" class="text-reset">About</a> <span>·</span> <a href="https://codeberg.org/mystie/flaskblog" target="_blank" class="text-reset">Source code</a></p>
 		</div>
 	</footer>
+	{% block scripts %} {% endblock %}
 	<script>
 		document.addEventListener('DOMContentLoaded', function() {
 			const alertClose = document.querySelector('.alert-close');

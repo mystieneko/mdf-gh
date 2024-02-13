@@ -1,0 +1,15 @@
+{
+	"INSTANCE": "giscus.app",
+	"REPO": "username/repo",
+	"REPO_ID": "",
+	"CATEGORY": "",
+	"CATEGORY_ID": "",
+	"MAPPING": "",
+	"STRICT": "",
+	"REACTIONS_ENABLED": "",
+	"EMIT_METADATA": "",
+	"INPUT_POSITION": "",
+	"THEME": "",
+	"LANG": "",
+	"LOADING": ""
+}

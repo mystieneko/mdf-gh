@@ -7,14 +7,14 @@
 
 :root {
 	--bg: #161616;
-	--second-bg: #252525;
-	--third-bg: #353535;
+	--second-bg: #202020;
+	--third-bg: #303030;
 	--code-bg: #222;
 	--color: #fff;
 	--accent: #42adee;
-	--btn-bg: rgb(74, 74, 74);
+	--btn-bg: rgb(66, 66, 66);
 	--btn-color: var(--color);
-	--btn-hover-bg: rgb(85, 85, 85);
+	--btn-hover-bg: rgb(74, 74, 74);
 	--btn-hover-color: var(--color);
 	--btn-danger-bg: #930000;
 	--btn-danger-bg-hover: #710000;
@@ -25,8 +25,16 @@
 	--content-font: sans-serif;
 	--border-radius: 3px;
 	--btn-padding: 3px 12px;
+	--body-max-width: 800px;
+	--container-max-width: 800px;
+	--image-max-width: 100%;
+	--image-max-height: 400px;
+	--transition: 0s;
+	--post-content-color: #dedede;
 }
-
+h1, h2, h3, h4, h5, h6 {
+	font-weight: 600;
+}
 code {
 	background: var(--bg);
 }
@@ -40,13 +48,21 @@ code {
 .nav-link:last-child {
 	margin: 0;
 }
-
+.card {
+	box-shadow: 0px 0px 20px 0px #111;
+}
+.card-body .actions {
+	display: flex;
+	gap: 4px;
+}
 .card-body .actions a {
 	background: var(--btn-bg);
 	color: var(--btn-color);
 	padding: var(--btn-padding);
 	border-radius: var(--border-radius);
 	text-decoration: none;
+	display: inline-flex;
+	gap: 5px;
 }
 .card-body .actions a:hover {
 	background: var(--btn-hover-bg);
