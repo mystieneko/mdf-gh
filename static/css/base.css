@@ -115,14 +115,14 @@ h1, h2, h3, h4, h5, h6 {
 .text-center {
 	text-align: center;
 }
-.post .time, .post-list .time, .post-info .time span {
+.badges .badge, .post-list .time, .post-info .time span {
 	font-size: small;
 	color: var(--muted);
 	display: flex;
 	gap: 5px;
 	align-items: center;
 }
-.post .time {
+.badges .badge {
 	margin-bottom: 10px;
 }
 .badges {

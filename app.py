@@ -23,7 +23,7 @@ db_pass = os.environ.get("DB_PASS")
 db_name = os.environ.get("DB_NAME")
 db_host = os.environ.get("DB_HOST")
 
-VERSION = '2024.0213.2'
+VERSION = '2024.0214.0'
 MAIN_CONFIG_FILE = 'config.json'
 GISCUS_CONFIG_FILE = 'giscusConfig.json'
 
