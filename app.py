@@ -23,7 +23,7 @@ db_pass = os.environ.get("DB_PASS")
 db_name = os.environ.get("DB_NAME")
 db_host = os.environ.get("DB_HOST")
 
-VERSION = '2024.0214.0'
+VERSION = '2024.0214.1'
 MAIN_CONFIG_FILE = 'config.json'
 GISCUS_CONFIG_FILE = 'giscusConfig.json'
 
@@ -141,6 +141,7 @@ def generateSlug(title):
     slug = re.sub(r'[^\w\s-]', '', title)
     slug = re.sub(r'\s+', '-', slug)
     slug = re.sub(r'-+', '-', slug)
+    slug = re.sub(r'/+', '-', slug)
     slug = slug.lower()
     return slug
 
@@ -624,6 +625,12 @@ def editPage(slug):
         if request.method == 'POST':
             title = request.form['title']
             content = request.form['content']
+            newslug = request.form['slug']
+
+            if newslug:
+                newslug = generateSlug(newslug)
+            else:
+                newslug = generateSlug(title)
 
             if not title:
                 flash('Title is required!')
@@ -631,7 +638,7 @@ def editPage(slug):
                 flash('Title is too short!')
             if len(title) > int(config["TITLE_LENGTH_LIMIT"]):
                 flash('Title is too long! (' + str(len(title)) + " characters out of " + config["TITLE_LENGTH_LIMIT"] + " allowed)")
-            if len(slug) > int(config["SLUG_LENGTH_LIMIT"]):
+            if len(newslug) > int(config["SLUG_LENGTH_LIMIT"]):
                 flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
                 
             else:
@@ -639,16 +646,16 @@ def editPage(slug):
                 cursor = conn.cursor()
                 
                 sql = """UPDATE pages  
-                         SET title=%s, content=%s
+                         SET title=%s, content=%s, slug=%s
                          WHERE slug=%s"""
                  
-                cursor.execute(sql, (title, content, slug))  
+                cursor.execute(sql, (title, content, newslug, slug))  
                 conn.commit()
                 
                 cursor.close()
                 conn.close()
                 
-                return redirect(url_for('page', slug=slug))
+                return redirect(url_for('page', slug=newslug))
                  
         return render_template('editPage.html', page=page)
     else:

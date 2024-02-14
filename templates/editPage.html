@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %} Edit "{{ page['title'] }}" {% endblock %}
+{% block title %} Edit "{{ page['title'] }}" - {{ config.BLOG_NAME }} {% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
 <script src="{{ url_for('static', filename='js/easymde.min.js') }}"></script>
@@ -16,10 +16,8 @@
 		</div>
 		<div class="form-group">
 			<label for="slug">Unique slug</label>
-			<input style="margin-bottom: 0" type="text" disabled name="slug" class="form-control"
-			value="{{ page['slug'] }}">
+			<input type="text" name="slug" class="form-control" value="{{ page['slug'] }}">
 		</input>
-		<small style="margin-bottom: 10px; opacity: 0.7;">Slug is generated from the title and cannot be changed</small>
 	</div>
 	<div class="form-group">
 		<label for="content">Content</label>

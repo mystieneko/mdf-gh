@@ -16,7 +16,7 @@ code {
 	padding: 3px;
 }
 
-.post-content p {
+.post-content p, .editor-preview > p {
 	max-width: fit-content;
 	margin: 10px 0;
 	line-height: 1.7;
@@ -45,6 +45,7 @@ hr {
 }
 h1, h2, h3, h4, h5, h6 {
 	margin-bottom: 0.3em;
+	font-size: revert;
 }
 .post-info h1, .post-info h2, .post-info h3, .post-info h4, .post-info h5, .post-info h6 {
 	margin-bottom: 0;
@@ -295,6 +296,7 @@ nav menuitem {
 	position: relative;
 	display: block;
 	opacity: 0;
+	transition: var(--transition);
 /*	cursor: pointer;*/
 }
 
@@ -304,6 +306,7 @@ nav menuitem > menu {
 	z-index: 2;
 	right: 0;
 	padding: 5px;
+	transition: var(--transition);
 }
 nav > menu {
 	display: flex;
@@ -339,6 +342,7 @@ menuitem:hover > menu > menuitem,
 menu:hover > menuitem {
 	opacity: 1;
 	color: var(--color);
+	transition: var(--transition);
 }
 nav > menu > menuitem menuitem menu {
 	transform: translateX(100%);

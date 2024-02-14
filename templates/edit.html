@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %} Edit "{{ post['title'] }}" {% endblock %}
+{% block title %} Edit "{{ post['title'] }}" - {{ config.BLOG_NAME }} {% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">

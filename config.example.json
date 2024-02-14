@@ -8,7 +8,7 @@
     "TITLE_LENGTH_LIMIT": "300",
     "SLUG_LENGTH_LIMIT": "50",
     "THEME": "light",
-    "ICON_URL": "/static/img/flask.svg",
+    "ICON_URL": "/static/img/flb_logo_favicon.svg",
     "ADMIN_CONTACT": "",
     "CACHE_ENABLED": "True",
     "CACHE_TIMEOUT": "300",
