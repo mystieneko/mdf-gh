@@ -36,17 +36,6 @@ else:
     cursor.close()
 
   cnx.commit()
-  # cursor = cnx.cursor()
-  
-  # # Insert sample data
-  # add_post = ("INSERT INTO posts " 
-  #             "(title, slug, content) "
-  #             "VALUES (%s, %s, %s)")
-  # data = ('Example post', 'example-post', 'Content goes here')    
-  
-  # cursor.execute(add_post, data)
-  # cnx.commit()
-  
   cursor.close()
   cnx.close()
   
