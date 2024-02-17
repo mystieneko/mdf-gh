@@ -359,6 +359,15 @@ nav > menu > menuitem menuitem menu {
 	.mob-mt-2 {
 		margin-top: 10px;
 	}
+	.navbar .logged-in {
+		margin-bottom: 0;
+	}
+	.nav-link img {
+		width: 32px;
+	}
+	.navbar .main-content {
+		align-items: center;
+	}
 	.desktop {
 		display: none;
 	}
@@ -376,11 +385,10 @@ nav > menu > menuitem menuitem menu {
 		display: inline-block;
 	}
 	.navbar {
-		justify-content: space-around !important;
 		padding: 1em !important;
 	}
 	.card, .post-comments {
-		width: 95% !important;
+		width: 100% !important;
 	}
 	.alert {
 		max-width: 95%;
