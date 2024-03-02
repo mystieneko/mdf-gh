@@ -5,6 +5,8 @@ static/css/themes/purpledark.css
 static/css/themes/minimal_dark.css
 static/css/themes/mono_dark.css
 todo.md
+config/main.json
+config/giscus.json
 flb*.zip
 __pycache__/
 venv/
