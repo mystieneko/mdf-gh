@@ -1,3 +1,5 @@
+/* @theme MonoBlue */
+
 @font-face {
 	font-family: "Jetbrains Mono";
 	src: local("Jetbrains Mono"), url("../../fonts/jbmono.woff2");
@@ -14,6 +16,7 @@
 	--btn-color: var(--bg);
 	--btn-hover-bg: #0484a4;
 	--btn-hover-color: var(--bg);
+	--danger-color: #f00;
 	--muted: #b9b9b9;
 	--input-outline: 1px solid var(--accent);
 	--link-hover: #0484a4;
@@ -29,6 +32,25 @@
 	--post-content-color: #e1e1e1;
 }
 
-menu menuitem a:hover:not(#logged-in-menu .drop-open) {
+menu menuitem a:hover:not(#logged-in-menu .drop-open),
+menu menuitem a:hover, menu menuitem a.selected {
 	color: var(--bg) !important;
+}
+
+.card-body .actions {
+  display: flex;
+  gap: 4px;
+}
+.card-body .actions a {
+  background: var(--btn-bg);
+  color: var(--btn-color);
+  padding: var(--btn-padding);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  display: inline-flex;
+  gap: 5px;
+}
+.card-body .actions a:hover {
+  background: var(--btn-hover-bg);
+  color: var(--btn-hover-color);
 }

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %} {{ page['title'] }} — {{ config.BLOG_NAME }} {% endblock %}
+{% block content %}
+<div class="card post">
+	<div class="card-body">
+		<div class="post-title">
+			<h1>{{ page['title'] }}</h1>
+			<div class="badges">
+				<span class="badge time" style="overflow: clip;"><button class="btn-link-reset text-reset" onclick="copy('{{ page.slug }}')"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3638 15.5355L16.9496 14.1213L18.3638 12.7071C20.3164 10.7545 20.3164 7.58866 18.3638 5.63604C16.4112 3.68341 13.2453 3.68341 11.2927 5.63604L9.87849 7.05025L8.46428 5.63604L9.87849 4.22182C12.6122 1.48815 17.0443 1.48815 19.778 4.22182C22.5117 6.95549 22.5117 11.3876 19.778 14.1213L18.3638 15.5355ZM15.5353 18.364L14.1211 19.7782C11.3875 22.5118 6.95531 22.5118 4.22164 19.7782C1.48797 17.0445 1.48797 12.6123 4.22164 9.87868L5.63585 8.46446L7.05007 9.87868L5.63585 11.2929C3.68323 13.2455 3.68323 16.4113 5.63585 18.364C7.58847 20.3166 10.7543 20.3166 12.7069 18.364L14.1211 16.9497L15.5353 18.364ZM14.8282 7.75736L16.2425 9.17157L9.17139 16.2426L7.75717 14.8284L14.8282 7.75736Z"></path></svg> {{translations.copy_permalink}}</button></span>
+				{% if session['user'] %}
+				<a class="badge time btn-link-reset text-reset" href="{{ url_for('editPage', slug=page['slug']) }}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> {{translations.edit}}</a>
+				{% endif %}
+			</div>
+		</div>
+		<div class="post-content">{{ page.content|render_markdown }}</div>
+	</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+	function copy(link) {
+		navigator.clipboard.writeText("{{config.BLOG_DOMAIN}}/p/" + link + "/")
+	}
+</script>
+{% endblock %}

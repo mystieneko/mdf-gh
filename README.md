@@ -3,13 +3,16 @@
 a simple blog system written in Flask with Markdown support
 
 ## Installation
+### VPS
 Create a virtual environment and activate it:  
 ```python3 -m venv venv && . venv/bin/activate```  
 Install required packages:  
 ```pip install -r requirements.txt```  
+### Shared hosting
+If your shared hosting provider supports [WSGI](https://w.wiki/_vTN2), [FastCGI](https://w.wiki/9EeQ), or something similar, use it (technically any CGI protocol could work, but FlaskBlog was only tested with WSGI)
 
 ## Post-installation
-Create a MySQL/MariaDB database and connect FlaskBlog to it (in `.env` file)  
+Create a MySQL/MariaDB database and connect FlaskBlog to it (in `.env` file) OR import `flaskblog.sql` file  
 Then init the database:  
 ```python3 init_db.py```  
 Rename example configs and configure FlaskBlog how you like:  

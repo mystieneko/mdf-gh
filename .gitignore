@@ -2,6 +2,9 @@
 config.json
 giscusConfig.json
 static/css/themes/purpledark.css
+static/css/themes/minimal_dark.css
+static/css/themes/mono_dark.css
+todo.md
 flb*.zip
 __pycache__/
 venv/

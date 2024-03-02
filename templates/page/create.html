@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %} {{translations.new_page}} — {{ config.BLOG_NAME }} {% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
+<script src="{{ url_for('static', filename='js/easymde.min.js') }}"></script>
+
+<div class="card" id="create-post-card">
+	<div class="card-body">
+		<h2 class="card-title">{{translations.new_page}}</h2>
+		<form method="post">
+			<div class="title-slug">
+				<div class="form-group" style="width: 100%;">
+					<!-- <label for="title" data-r>Title</label> -->
+					<input type="text" required name="title"
+					placeholder="{{translations.title}}" style="width: 100%; font-size: 18px;" class="form-control"
+					value="{{ request.form['title'] }}"></input>
+				</div>
+<div class="form-group">
+					
+					<input type="text" name="slug"
+					placeholder="Slug (optional)" style="" class="form-control"
+					value="{{ request.form['slug'] }}"></input>
+				</div>
+			</div>
+			<div class="form-group">
+				<!-- <label for="content">Content</label> -->
+				<textarea name="content" id="post-content-input" placeholder="{{translations.content_placeholder}}"
+				class="form-control">{{ request.form['content'] }}</textarea>
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary mt-2">{{translations.create}}</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+	const easyMDE = new EasyMDE({element: document.getElementById('post-content-input')});
+</script>
+{% endblock %}

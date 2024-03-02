@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 from functools import wraps
 from bleach.sanitizer import Cleaner
 from feedgen.feed import FeedGenerator
+from pathlib import Path
 import markupsafe
 import mysql.connector
 import mistune
@@ -16,55 +17,60 @@ import time
 import pytz
 import json
 
-load_dotenv()
+"""
+this is needed to ensure that load_dotenv() loads .env file from the right
+path, because load_dotenv() without arguments doesn't work with WSGI
+"""
+env_path = Path.cwd() / ".env"
+load_dotenv(dotenv_path=env_path)
 
 db_user = os.environ.get("DB_USER")
 db_pass = os.environ.get("DB_PASS")
 db_name = os.environ.get("DB_NAME")
 db_host = os.environ.get("DB_HOST")
 
-VERSION = '2024.0217.2'
-MAIN_CONFIG_FILE = 'config.json'
-GISCUS_CONFIG_FILE = 'giscusConfig.json'
+VERSION = '2024.0302.0'
+VERSION_MOD_LEFT = ''
+VERSION_MOD_RIGHT = '+dev'
+MAIN_CONFIG_FILE = 'config/main.json'
+GISCUS_CONFIG_FILE = 'config/giscus.json'
 
-config = json.load(open(MAIN_CONFIG_FILE))
-giscusConfig = json.load(open(GISCUS_CONFIG_FILE))
-config['CACHE_TIMEOUT'] = int(config['CACHE_TIMEOUT'])
-
-def loadConfig(config_name):
+def loadJSON(config_name):
     with open(config_name, 'r') as file:
         return json.load(file)
 
-def saveConfig(config_dict, config_name):
+def saveJSON(config_dict, config_name):
     with open(config_name, 'w') as file:
         json.dump(config_dict, file, indent=4)
 
-def getDbConnection():
+config = loadJSON(MAIN_CONFIG_FILE)
+giscusConfig = loadJSON(GISCUS_CONFIG_FILE)
+config['CACHE_TIMEOUT'] = int(config['CACHE_TIMEOUT'])
+
+def connect():
     conn = mysql.connector.connect(
         host=db_host,
         user=db_user,
         password=db_pass,
         database=db_name,
         pool_name="dbpool",
+        pool_size=32,
         autocommit=True
     )
     return conn
 
 def getPost(slug):
-
-
-    conn = getDbConnection()
+    conn = connect()
     cursor = conn.cursor()
 
     query = '''SELECT p.id, p.title, p.slug, p.content,
-               p.created, DATE_FORMAT(p.created, '%m/%d/%Y') AS created
+               p.created, p.tags, DATE_FORMAT(p.created, %s) AS created
                FROM posts p WHERE p.slug = %s'''
 
-    cursor.execute(query, (slug,))
+    cursor.execute(query, (config['DATE_FORMAT'], slug,))
     row = cursor.fetchone()
 
     if row is None:
-        # No post for given slug
         return None
 
     post = {
@@ -73,7 +79,8 @@ def getPost(slug):
         'slug': row[2],
         'content': row[3],
         'created': row[4],
-        'created_formatted': row[5]
+        'tags': row[5].split(','),
+        'created_formatted': row[6]
     }
 
     cursor.close()
@@ -82,16 +89,16 @@ def getPost(slug):
     return post
 
 def getAllPosts():
-    conn = getDbConnection()
+    conn = connect()
     cursor = conn.cursor()
     
     query = '''SELECT p.id, p.title, p.slug, p.content, 
-                           p.created,
-                           DATE_FORMAT(p.created,'%m/%d/%Y') AS created_date  
+                           p.created, p.tags,
+                           DATE_FORMAT(p.created, %s) AS created_date  
                       FROM posts p
                       ORDER BY p.created DESC'''
                
-    cursor.execute(query)
+    cursor.execute(query, (config['DATE_FORMAT'],))
     
     posts = []
     
@@ -102,7 +109,8 @@ def getAllPosts():
            "slug": row[2],
            "content": row[3],
            "created": row[4],
-           "created_formatted": row[5]
+           "tags": row[5].split(','),
+           "created_formatted": row[6]
         }
         posts.append(post)
         
@@ -111,9 +119,18 @@ def getAllPosts():
     
     return posts
 
+def getPosts(filters=None):
+    posts = getAllPosts()
+
+    if filters and 'tag' in filters:
+        tagged = [post for post in posts if filters['tag'] in post['tags']]
+        return tagged
+    else:
+        return posts
+
 def getPage(slug):
 
-    conn = getDbConnection()
+    conn = connect()
     cursor = conn.cursor()
 
     query = '''SELECT pg.id, pg.title, pg.slug, pg.content
@@ -136,6 +153,9 @@ def getPage(slug):
     conn.close()
 
     return page
+
+def getTheme():
+    return session.get('theme') or config['THEME']
 
 def generateSlug(title):
     slug = re.sub(r'[^\w\s-]', '', title)
@@ -163,47 +183,118 @@ app.config.from_mapping(config)
 app.config["AUTOESCAPE"] = True
 cache = Cache(app)
 
+@app.before_request
+def before_request():
+    if not session.get('theme'):
+        session['theme'] = 'dark.css'
+
+themes = {}
+
+themes_dir = './static/css/themes/'
+
+for filename in os.listdir(themes_dir):
+    if filename.endswith(".css"):
+        theme_file_path = os.path.join(themes_dir, filename)
+        with open(theme_file_path, 'r') as css_file:
+            css_content = css_file.read()
+            theme_match = re.search(r'/\* @theme\s+(.*?)\s*\*/', css_content)
+            theme_name = theme_match.group(1) if theme_match else 'Unknown Theme'
+            themes[theme_name] = filename
+
+@app.errorhandler(404)
+def notfound(error):
+    return render_template('errorpages/404.html'), 404
+
+@app.errorhandler(403)
+def forbidden(error):
+    return render_template('errorpages/403.html'), 403
+
+@app.errorhandler(500)
+def internalservererror(error):
+    return render_template('errorpages/500.html'), 500
+
+@app.context_processor
+def inject_translations():
+    lang = session.get('lang') or config['DEFAULT_LANG_SHORT'] or 'en'
+    translations = loadJSON(f"translations/strings_{lang}.json")
+    return dict(translations=translations, lang=lang)
+
 @app.context_processor
 def inject_version():
-    return dict(version=VERSION)
+    return dict(version=VERSION, version_mod_left=VERSION_MOD_LEFT, version_mod_right=VERSION_MOD_RIGHT)
+
+@app.context_processor
+def inject_theme():
+    return dict(theme_name=session.get('theme'), themes=themes)
+
+@app.context_processor
+def inject_tohtml():
+    return dict(to_html=mistune.html)
+
+@app.route('/change_lang/', methods=['POST'])
+def changeLang():
+    lang = request.form['language']
+    session['lang'] = lang
+    return redirect(request.referrer)
 
 app.context_processor(inject_version)
 
-@app.route('/admin', methods=['GET', 'POST'])
+@app.route('/admin/', methods=['GET', 'POST'])
 def admin():
-    if not session['user_role'] == 'admin':
+    if not (session.get('user') and session['user_role'] == 'admin'):
         abort(403)
     if request.method == 'POST':
         # Save changes
-        config = loadConfig(MAIN_CONFIG_FILE)
+        config = loadJSON(MAIN_CONFIG_FILE)
         for key, value in request.form.items():
             # Update the config dictionary with the new value
             config[key] = value
-        saveConfig(config, MAIN_CONFIG_FILE)
+        saveJSON(config, MAIN_CONFIG_FILE)
         app.config.update(config)
         flash('Changes saved!', 'success')
         return redirect(url_for('admin'))
     else:
         # Render the admin page with editable inputs
-        config_vars = loadConfig(MAIN_CONFIG_FILE)
-        return render_template('admin.html', config_vars=config_vars)
+        config_vars = loadJSON(MAIN_CONFIG_FILE)
+        return render_template('admin/index.html', config_vars=config_vars)
 
-@app.route('/admin/currentconfig')
+@app.route('/admin/currentconfig/')
 def admin_currentconf():
     if not session['user_role'] == 'admin':
         abort(403)
 
-    config_vars = loadConfig(MAIN_CONFIG_FILE)
+    config_vars = loadJSON(MAIN_CONFIG_FILE)
 
-    return render_template('admin_currentconf.html', config=config_vars)
+    return render_template('admin/currentconf.html', config=config_vars)
 
-@app.route('/account', methods=['GET'])
+@app.route('/account/', methods=['GET', 'POST'])
 def accountSettings():
     if not session.get('user'):
         return redirect(url_for('login'))
-    return render_template('accountSettings.html')
+    return redirect(url_for('accountSecurity'))
 
-@app.route('/account/change_password', methods=['POST'])
+@app.route('/change_theme/', methods=['POST'])
+def changeTheme():
+    if request.method == "POST":
+        theme = request.form['theme']
+        print(theme)
+        session['theme'] = theme
+        return redirect(request.referrer)
+
+@app.route('/account/security/', methods=['GET'])
+def accountSecurity():
+    if not session.get('user'):
+        return redirect(url_for('login'))
+    return render_template('account/security.html')
+
+@app.route('/account/authentication/', methods=['GET'])
+def accountAuth():
+    if not session.get('user'):
+        return redirect(url_for('login'))
+
+    return render_template('account/auth.html')
+
+@app.route('/account/change_password/', methods=['POST'])
 def changePassword():
     if not session.get('user'):
         return redirect(url_for('index'))
@@ -212,7 +303,7 @@ def changePassword():
         new_password = request.form['newpass']
         confirm_password = request.form['newpassconfirm']
         
-        conn = getDbConnection()
+        conn = connect()
         cursor = conn.cursor()
         cursor.execute('''SELECT * FROM users  
             WHERE name=%s''', (session['user'],))
@@ -220,11 +311,11 @@ def changePassword():
             
         if not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
             flash('Current password is incorrect')
-            return render_template('accountSettings.html')
+            return render_template('account/base.html')
             
         if new_password != confirm_password:
             flash('New passwords do not match')
-            return render_template('accountSettings.html')
+            return render_template('account/base.html')
             
         new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
         
@@ -241,25 +332,25 @@ def changePassword():
         session.pop('user', None)
         return redirect(url_for('login'))
 
-@app.route('/account/change_username', methods=['POST'])
+@app.route('/account/change_username/', methods=['POST'])
 def changeUsername():
     if not session.get('user'):
         return redirect(url_for('index'))
     if request.method == 'POST':
-        current_password = request.form['currentpass_n'] 
+        current_password = request.form['currentpass_n']
         new_username = request.form['newusername']
 
-        conn = getDbConnection()
+        conn = connect()
         cursor = conn.cursor()
 
         # validate current password
         cursor.execute('''SELECT * FROM users
-            WHERE name=%s''', (session['user'],))  
+            WHERE name=%s''', (session['user'],))
         user = cursor.fetchone()
         
         if not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
             flash('Current password is incorrect')
-            return render_template('accountSettings.html')
+            return render_template('account/base.html')
 
         # check if new username is available
         cursor.execute('''SELECT * FROM users WHERE name=%s''', (new_username,))
@@ -267,7 +358,7 @@ def changeUsername():
 
         if username_exists:
             flash('This username is already taken')
-            return render_template('accountSettings.html')
+            return render_template('account/base.html')
 
         # update username
         update_sql = """UPDATE users SET name=%s WHERE name=%s"""
@@ -277,20 +368,18 @@ def changeUsername():
         cursor.close()
         conn.close()
 
-        # update user session 
-        session['user'] = new_username
-        
-        flash('Username updated successfully!')
-        return redirect(url_for('accountSettings'))
+        flash('Username changed successfully!')
+        session.pop('user', None)
+        return redirect(url_for('login'))
 
-@app.route('/account/delete_account', methods=['POST'])
+@app.route('/account/delete_account/', methods=['POST'])
 def deleteAccount():
     if not session.get('user'):
         return redirect(url_for('index'))
     if request.method == 'POST':
         current_password = request.form['currentpass_d'] 
 
-        conn = getDbConnection()
+        conn = connect()
         cursor = conn.cursor()
 
         # validate current password
@@ -300,7 +389,7 @@ def deleteAccount():
         
         if not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
             flash('Password is incorrect')
-            return render_template('accountSettings.html')
+            return render_template('account/base.html')
 
         # delete account
         delete_sql = """DELETE FROM users WHERE name=%s"""
@@ -316,7 +405,7 @@ def deleteAccount():
 
 user_requests = {}
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     if config["REGISTRATIONS_OPENED"] == "True":
         if session.get('user'):
@@ -339,7 +428,7 @@ def register():
 
             name = request.form['name']
             email = request.form['email']
-            email_regex = r'^\w+[\+\.\w-]*@([\w-]+\.)*\w+[\w-]*\.([a-z]{2,4}|\d+)$'
+            email_regex = r'^\w+[\+\.\w-]*@([\w-]+\.)*\w+[\w-]*\.([a-z]{2,24}|\d+)$'
 
             if not re.match(email_regex, email):
                 flash('Invalid email')
@@ -356,7 +445,7 @@ def register():
                 is_approved = 1
 
             # Create user in database
-            conn = getDbConnection()
+            conn = connect()
             cursor = conn.cursor()
             query = """INSERT INTO users 
                       (name, email, password, is_approved, role)
@@ -375,12 +464,12 @@ def register():
 
             return redirect(url_for('index'))
 
-        return render_template('register.html')
+        return render_template('account/register.html')
     else:
         flash("Registrations are closed")
         return redirect(url_for('index'))
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login/', methods=['GET', 'POST'])
 def login():
 
     if request.method == 'POST':
@@ -389,7 +478,7 @@ def login():
         password = request.form['password']
 
         # Check credentials and fetch user
-        conn = getDbConnection()
+        conn = connect()
         cursor = conn.cursor()
         cursor.execute('''SELECT * FROM users  
                           WHERE name=%s''', (name,))
@@ -412,9 +501,9 @@ def login():
 
         cursor.close()
         conn.close()
-    return render_template('login.html')
+    return render_template('account/login.html')
 
-@app.route('/logout')  
+@app.route('/logout/')  
 def logout():
     if session.get('user'):
         session.pop('user', None)
@@ -424,19 +513,21 @@ def logout():
 
 @app.route('/')
 def index():
-    return render_template('index.html', to_html=mistune.html, version=VERSION)
+    return render_template('index.html', to_html=mistune.html)
 
-@app.route('/posts')
+@app.route('/posts/')
 @cached
 def posts():
-    conn = getDbConnection()
+    conn = connect()
     cursor = conn.cursor()
 
-    cursor.execute('''SELECT p.id, p.title, p.slug, p.content, 
+    query = '''SELECT p.id, p.title, p.slug, p.content, 
                            p.created,
-                           DATE_FORMAT(p.created,'%m/%d/%Y') AS created_date  
+                           DATE_FORMAT(p.created, %s) AS created_date  
                       FROM posts p
-                      ORDER BY p.created DESC''')
+                      ORDER BY p.created DESC'''
+
+    cursor.execute(query, (config['DATE_FORMAT'],))
 
     posts = []
     for row in cursor:
@@ -450,16 +541,64 @@ def posts():
         }
         posts.append(post)
 
+    posts_count = len(posts)
+
     cursor.close()  
     conn.close()
 
-    return render_template('postList.html', posts=posts)
+    return render_template('post/list.html', posts=posts, posts_count=posts_count)
 
-@app.route('/pages')
+@app.route('/search/', methods=['GET'])
+def search():
+    if config['SEARCH_ENABLED'] == "True":
+        search_query = request.args.get('q', '')
+        if search_query == '' or search_query == ' ':
+            flash("Search query cannot be empty")
+            return redirect(request.referrer)
+
+        conn = connect()
+        cursor = conn.cursor()
+
+        query = '''SELECT p.id, p.title, p.slug, p.created, DATE_FORMAT(p.created, %s) AS created_date  
+                   FROM posts p WHERE title LIKE %s
+                   ORDER BY p.created DESC'''
+        cursor.execute(query, (config['DATE_FORMAT'], '%' + search_query + '%',))
+        posts = []
+        for row in cursor:
+            post = {
+                'id': row[0],
+                'title': row[1],
+                'slug': row[2],
+                'created': row[3],
+                'created_formatted': row[4]
+            }
+            posts.append(post)
+        print(posts)
+
+        posts_count = len(posts)
+
+        cursor.close()
+        conn.close()
+
+        return render_template('search_results.html', posts=posts, posts_count=posts_count, search_query=search_query)
+    else:
+        return abort(404)
+
+
+@app.route('/tag/<tag>/')
+@cached
+def tag(tag):
+
+    posts = getPosts({'tag': tag})
+    posts_count = len(getPosts({'tag': tag}))
+  
+    return render_template('tag.html', posts=posts, tag=tag, posts_count=posts_count)
+
+@app.route('/pages/')
 @cached
 def pages():
     if config['SHOW_PAGES'] == "True" or session.get('user'):
-        conn = getDbConnection()
+        conn = connect()
         cursor = conn.cursor()
 
         cursor.execute('''SELECT pg.id, pg.title, pg.slug, pg.content
@@ -478,7 +617,7 @@ def pages():
         cursor.close()  
         conn.close()
 
-        return render_template('pageList.html', pages=pages)
+        return render_template('page/list.html', pages=pages)
     else:
         return redirect(url_for('index'))
 
@@ -502,23 +641,33 @@ def render_markdown(text):
     clean_html = cleaner.clean(html)
     return Markup(clean_html)
 
-@app.route('/<slug>')
+@app.route('/<slug>/')
 @cached
 def post(slug):
     post = getPost(slug)
     if post is None:
         return abort(404)
-    return render_template('post.html', post=post, to_html=mistune.html, giscus=giscusConfig)
+    return render_template('post/view.html', post=post, to_html=mistune.html, giscus=giscusConfig)
 
-@app.route('/pages/<slug>')
+@app.route('/p/<slug>/')
 @cached
 def page(slug):
     page = getPage(slug)
     if page is None:
         return abort(404)
-    return render_template('page.html', page=page, to_html=mistune.html)
+    return render_template('page/view.html', page=page, to_html=mistune.html)
 
-@app.route('/create', methods=('GET', 'POST'))
+@app.route('/create/')
+@cached
+def oldCreate():
+    return redirect(url_for('create'))
+
+@app.route('/create/page/')
+@cached
+def oldCreatePage():
+    return redirect(url_for('createPage'))
+
+@app.route('/new/', methods=('GET', 'POST'))
 def create():
     if session.get('user'):
         if request.method == 'POST':
@@ -526,6 +675,12 @@ def create():
             title = request.form['title']
             content = request.form['content']
             slug = request.form['slug']
+
+            tags_str = request.form['tags']
+            tags_str = tags_str.lower().strip()
+            tags = tags_str.split(',')
+            tags = [t.strip() for t in tags]
+
             if slug:
                 slug = generateSlug(slug)
             else:
@@ -551,14 +706,15 @@ def create():
                 flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
 
             else:
-                conn = getDbConnection()
+                conn = connect()
                 cursor = conn.cursor()
+                tags_str = ','.join(tags)
 
                 insert_sql = """INSERT INTO posts  
-                (title, content, slug)
-                VALUES (%s, %s, %s)"""
+                (title, content, slug, tags)
+                VALUES (%s, %s, %s, %s)"""
 
-                cursor.execute(insert_sql, (title, content, slug))
+                cursor.execute(insert_sql, (title, content, slug, tags_str))
                 conn.commit()
 
                 cursor.close()
@@ -566,20 +722,25 @@ def create():
 
                 flash(Markup('Post created! View it <a href="' + url_for('post', slug=slug) + '">here</a>'))
                 return redirect(url_for('index'))
-        return render_template('create.html')
+        return render_template('post/create.html')
     else:
         abort(403)
 
-@app.route('/create/page', methods=('GET', 'POST'))
+@app.route('/new/page/', methods=('GET', 'POST'))
 def createPage():
     if session.get('user'):
         if request.method == 'POST':
 
             title = request.form['title']
             content = request.form['content']
-            slug = generateSlug(title)
+            slug = request.form['slug']
 
-            slug_exists = getPost(slug) is not None
+            if slug:
+                slug = generateSlug(slug)
+            else:
+                slug = generateSlug(title)
+
+            slug_exists = getPage(slug) is not None
 
             counter = 1
             while slug_exists:
@@ -599,7 +760,7 @@ def createPage():
                 flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
 
             else:
-                conn = getDbConnection()
+                conn = connect()
                 cursor = conn.cursor()
 
                 insert_sql = """INSERT INTO pages  
@@ -614,14 +775,16 @@ def createPage():
 
                 flash(Markup('Page created! View it <a href="' + url_for('page', slug=slug) + '">here</a>'))
                 return redirect(url_for('index'))
-        return render_template('createPage.html')
+        return render_template('page/create.html')
     else:
         abort(403)
 
-@app.route('/pages/<slug>/edit', methods=('GET', 'POST'))
+@app.route('/p/<slug>/edit/', methods=('GET', 'POST'))
 def editPage(slug):
     if session.get('user'):
         page = getPage(slug)
+        if page is None:
+            return abort(404)
         if request.method == 'POST':
             title = request.form['title']
             content = request.form['content']
@@ -642,7 +805,7 @@ def editPage(slug):
                 flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
                 
             else:
-                conn = getDbConnection()
+                conn = connect()
                 cursor = conn.cursor()
                 
                 sql = """UPDATE pages  
@@ -657,18 +820,23 @@ def editPage(slug):
                 
                 return redirect(url_for('page', slug=newslug))
                  
-        return render_template('editPage.html', page=page)
+        return render_template('page/edit.html', page=page)
     else:
         abort(403)
 
-@app.route('/<slug>/edit', methods=('GET', 'POST'))
+@app.route('/<slug>/edit/', methods=('GET', 'POST'))
 def edit(slug):
     if session.get('user'):
         post = getPost(slug)
+        if post is None:
+            return abort(404)
         if request.method == 'POST':
             title = request.form['title']
             content = request.form['content']
             newslug = request.form['slug']
+            new_tags_str = request.form['tags']
+            new_tags_str = new_tags_str.lower().strip()
+            new_tags = [t.strip() for t in new_tags_str.split(',')]
 
             if newslug:
                 newslug = generateSlug(newslug)
@@ -685,14 +853,14 @@ def edit(slug):
                 flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
                 
             else:
-                conn = getDbConnection()
+                conn = connect()
                 cursor = conn.cursor()
                 
                 sql = """UPDATE posts  
-                         SET title=%s, content=%s, slug=%s
+                         SET title=%s, content=%s, slug=%s, tags=%s
                          WHERE slug=%s"""
                  
-                cursor.execute(sql, (title, content, newslug, slug))
+                cursor.execute(sql, (title, content, newslug, ','.join(new_tags), slug))
                 conn.commit()
                 
                 cursor.close()
@@ -700,18 +868,18 @@ def edit(slug):
                 
                 return redirect(url_for('post', slug=newslug))
                  
-        return render_template('edit.html', post=post)
+        return render_template('post/edit.html', post=post)
     else:
         abort(403)
 
-@app.route('/page/<slug>/delete', methods=('POST',))
+@app.route('/p/<slug>/delete/', methods=('POST',))
 def deletePage(slug):
 
     page = getPage(slug)
     if page is None:
         flash('Page not found')
         return redirect(url_for('index'))
-    conn = getDbConnection()
+    conn = connect()
     cursor = conn.cursor()
 
     delete_sql = """DELETE FROM pages  
@@ -726,14 +894,14 @@ def deletePage(slug):
     
     return redirect(url_for('index'))
 
-@app.route('/<slug>/delete', methods=('POST',))
+@app.route('/<slug>/delete/', methods=('POST',))
 def delete(slug):
 
     post = getPost(slug)
     if post is None:
         flash('Post not found')  
         return redirect(url_for('index'))
-    conn = getDbConnection()  
+    conn = connect()  
     cursor = conn.cursor()
 
     delete_sql = """DELETE FROM posts  
@@ -748,7 +916,7 @@ def delete(slug):
     
     return redirect(url_for('index'))
 
-@app.route("/feed")
+@app.route("/feed/")
 def rssFeed():
     fg = FeedGenerator()
     fg.title(config['BLOG_NAME'])
@@ -770,6 +938,6 @@ def rssFeed():
 
     return fg.rss_str(pretty=True)
 
-@app.route('/about')
+@app.route('/about/')
 def about():
 	return render_template('about.html')

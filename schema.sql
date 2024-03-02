@@ -14,7 +14,8 @@ CREATE TABLE posts (
 	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	title TEXT NOT NULL,
 	slug TEXT NOT NULL,
-	content TEXT NOT NULL
+	content TEXT NOT NULL,
+	tags TEXT NOT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -23,5 +24,5 @@ CREATE TABLE users (
 	email VARCHAR(100),
 	password VARCHAR(255),
 	is_approved BOOLEAN,
-	role VARCHAR(50) DEFAULT 'user'
+	role VARCHAR(50)
 ) ENGINE=InnoDB;

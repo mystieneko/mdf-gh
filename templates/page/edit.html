@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %} {{translations.edit}} "{{ page['title'] }}" — {{ config.BLOG_NAME }} {% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
+<script src="{{ url_for('static', filename='js/easymde.min.js') }}"></script>
+
+<div class="card">
+	<div class="card-body">
+		<h2 class="card-title">{{translations.edit}} "{{ page['title'] }}"</h2>
+		<form method="post">
+			<div class="title-slug">
+				<div class="form-group" style="width: 100%;">
+					<input type="text" name="title" placeholder="{{translations.title}}" style="width: 100%; font-size: 18px;" class="form-control"
+					value="{{ request.form['title'] or page['title'] }}">
+				</div>
+				<div class="form-group">
+					<input type="text" name="slug" class="form-control" placeholder="{{translations.slug}}" value="{{ page['slug'] }}">
+				</div>
+			</div>
+			<div class="form-group">
+				<textarea name="content" id="post-content-input" placeholder="{{translations.content_placeholder}}" class="form-control">{{ request.form['content'] or page['content'] }}</textarea>
+			</div>
+
+			<div class="form-group form-actions" style="flex-direction: row; justify-content: space-between; align-items: center;">
+				<button type="submit" class="btn btn-primary mt-2">{{translations.save_and_return}}</button>
+			</form>
+
+			<form class="delete" action="{{ url_for('deletePage', slug=page['slug']) }}" method="POST">
+				<input type="submit" value="{{translations.delete_page}}" class="btn btn-danger mt-2" onclick="return confirm('{{translations.page_delete_confirm}}')">
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+	const easyMDE = new EasyMDE({element: document.getElementById('post-content-input')});
+</script>
+{% endblock %}

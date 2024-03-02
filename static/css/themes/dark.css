@@ -1,3 +1,5 @@
+/* @theme Dark */
+
 @font-face {
 	font-family: "Cantarell";
 	font-display: block;
@@ -18,6 +20,7 @@
 	--btn-hover-color: var(--color);
 	--btn-danger-bg: #930000;
 	--btn-danger-bg-hover: #710000;
+	--danger-color: #ff5353;
 	--muted: #b9b9b9;
 	--input-outline: 1px solid var(--btn-hover-bg);
 	--link-hover: #0071b5;
@@ -25,8 +28,8 @@
 	--content-font: sans-serif;
 	--border-radius: 3px;
 	--btn-padding: 3px 12px;
-	--body-max-width: 800px;
-	--container-max-width: 800px;
+	--body-max-width: 1000px;
+	--container-max-width: 1000px;
 	--image-max-width: 100%;
 	--image-max-height: 400px;
 	--transition: 0s;
@@ -78,6 +81,9 @@ code {
 .form-group .btn {
 	--btn-padding: 0.6em 1.2em;
 }
+menuitem:hover > menu, menu[open] {
+	box-shadow: 0px 0px 20px 0px var(--bg);
+}
 
 @media (max-width: 800px) {
 	.form-group .btn, .form-group .btn-danger, .delete {
@@ -85,5 +91,8 @@ code {
 	}
 	.form-actions {
 		flex-direction: column !important;
+	}
+	#search {
+		transition: none;
 	}
 }

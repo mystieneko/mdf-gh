@@ -1,0 +1,35 @@
+{% extends 'account/base.html' %}
+{% block title %}{{translations.security}} - {{translations.account_settings}} — {{ config.BLOG_NAME }} {% endblock %}
+{% set sel_sec = 'selected' %}
+{% block settings %}
+<h1 style="margin-bottom: 1em;">{{translations.security}}</h1>
+<h2>{{translations.change_password}}</h2>
+<form action="{{ url_for('changePassword') }}" method="POST">
+	<div class="form-group">
+		<label for="currentpass">{{translations.current_password}}</label>
+		<input class="form-control" type="password" id="currentpass" name="currentpass" value="{{ request.form['currentpass'] }}">
+	</div>
+	<div class="form-group">
+		<label for="newpass">{{translations.new_password}}</label>
+		<input class="form-control" type="password" id="newpass" name="newpass" value="{{ request.form['newpass'] }}">
+	</div>
+	<div class="form-group">
+		<label for="newpassconfirm">{{translations.confirm_new_password}}</label>
+		<input class="form-control" type="password" id="newpassconfirm" name="newpassconfirm" value="{{ request.form['newpassconfirm'] }}">
+	</div>
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary mt-2" style="margin-bottom: 20px;">{{translations.change_password}}</button>
+	</div>
+</form>
+<h1 style="color: var(--danger-color)">Danger Zone</h1>
+<h2 style="color: var(--danger-color)">Delete Account</h2>
+<form action="{{ url_for('deleteAccount') }}" method="POST">
+	<div class="form-group">
+		<label for="currentpass_d">{{translations.password}}</label>
+		<input class="form-control" type="password" id="currentpass_d" name="currentpass_d" value="{{ request.form['currentpass_d'] }}">
+	</div>
+	<div class="form-group">
+		<input type="submit" value="Delete Account" class="btn btn-danger mt-2" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+	</div>
+</form>
+{% endblock %}
