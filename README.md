@@ -1,4 +1,3 @@
-_**the development is paused for an unknown time.**_
 
 <img alt="FlaskBlog logo" src="./static/img/flb_logo_full_w.png" width="400">
 
