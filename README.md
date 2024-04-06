@@ -1,3 +1,4 @@
+
 <img alt="FlaskBlog logo" src="./static/img/flb_logo_full_w.png" width="400">
 
 a simple blog system written in Flask with Markdown support
