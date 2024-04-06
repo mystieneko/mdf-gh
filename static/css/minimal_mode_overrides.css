@@ -1,0 +1,28 @@
+.card {
+	background: 0 0;
+	box-shadow: none;
+}
+.post.card {
+	padding: 0;
+}
+.navbar {
+	display: flex;
+	gap: 1em;
+	padding: 1em 5px;
+	opacity: 0.4;
+	transition: .3s;
+}
+.navbar:hover {
+	opacity: 1;
+}
+.custom-links, .post.card {
+	margin-top: 0;
+}
+.navbar-collapse {
+	display: none !important;
+}
+@media (max-width: 800px) {
+	.post.card {
+		padding: 1em;
+	}
+}

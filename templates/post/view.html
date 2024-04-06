@@ -1,61 +1,70 @@
 {% extends 'base.html' %}
-{% block title %} {{ post['title'] }} — {{ config.BLOG_NAME }} {% endblock %}
+{% block title %} {{ post['title'] }} — {{ config.blogName }} {% endblock %}
 {% block content %}
-
+<script type="text/javascript" src="{{ cactus.apiUrl }}/cactus.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cactus_custom.css') }}" type="text/css">
 <div class="card post">
 	<div class="card-body">
 		<div class="post-title">
 			<h1>{{ post['title'] }}</h1>
 		</div>
 		<div class="badges">
-			{% if config['SHOW_POST_DATE_IN_POST'] == "True" %}
+			{% if config['showPostDateInPost'] == "True" %}
 			<span class="badge time"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 1.99669C6 1.99669 4 15.9967 3 21.9967C3.66667 21.9967 4.33275 21.9967 4.99824 21.9967C5.66421 18.6636 7.33146 16.8303 10 16.4967C14 15.9967 17 12.4967 18 9.49669L16.5 8.49669C16.8333 8.16336 17.1667 7.83002 17.5 7.49669C18.5 6.49669 19.5042 4.99669 21 1.99669Z"></path></svg> {{ post['created_formatted'] }}</span>
 			{% endif %}
-			<span class="badge time" style="overflow: clip;"><button class="btn-link-reset text-reset" onclick="copy('{{ post.slug }}')"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3638 15.5355L16.9496 14.1213L18.3638 12.7071C20.3164 10.7545 20.3164 7.58866 18.3638 5.63604C16.4112 3.68341 13.2453 3.68341 11.2927 5.63604L9.87849 7.05025L8.46428 5.63604L9.87849 4.22182C12.6122 1.48815 17.0443 1.48815 19.778 4.22182C22.5117 6.95549 22.5117 11.3876 19.778 14.1213L18.3638 15.5355ZM15.5353 18.364L14.1211 19.7782C11.3875 22.5118 6.95531 22.5118 4.22164 19.7782C1.48797 17.0445 1.48797 12.6123 4.22164 9.87868L5.63585 8.46446L7.05007 9.87868L5.63585 11.2929C3.68323 13.2455 3.68323 16.4113 5.63585 18.364C7.58847 20.3166 10.7543 20.3166 12.7069 18.364L14.1211 16.9497L15.5353 18.364ZM14.8282 7.75736L16.2425 9.17157L9.17139 16.2426L7.75717 14.8284L14.8282 7.75736Z"></path></svg> {{translations.copy_permalink}}</button></span>
+			<span class="badge time" style="overflow: clip;"><button class="btn-link-reset text-reset" onclick="copy('{{post.slug}}')" title="{{translations.copy_permalink}}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3638 15.5355L16.9496 14.1213L18.3638 12.7071C20.3164 10.7545 20.3164 7.58866 18.3638 5.63604C16.4112 3.68341 13.2453 3.68341 11.2927 5.63604L9.87849 7.05025L8.46428 5.63604L9.87849 4.22182C12.6122 1.48815 17.0443 1.48815 19.778 4.22182C22.5117 6.95549 22.5117 11.3876 19.778 14.1213L18.3638 15.5355ZM15.5353 18.364L14.1211 19.7782C11.3875 22.5118 6.95531 22.5118 4.22164 19.7782C1.48797 17.0445 1.48797 12.6123 4.22164 9.87868L5.63585 8.46446L7.05007 9.87868L5.63585 11.2929C3.68323 13.2455 3.68323 16.4113 5.63585 18.364C7.58847 20.3166 10.7543 20.3166 12.7069 18.364L14.1211 16.9497L15.5353 18.364ZM14.8282 7.75736L16.2425 9.17157L9.17139 16.2426L7.75717 14.8284L14.8282 7.75736Z"></path></svg> <span>{{translations.copy_permalink}}</span></button></span>
 			{% if session['user'] %}
-			<a class="badge time btn-link-reset text-reset" href="{{ url_for('edit', slug=post['slug']) }}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> {{translations.edit}}</a>
+			<a class="badge time btn-link-reset text-reset" href="{{ url_for('edit', slug=post['slug']) }}" title="{{translations.edit}}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> <span>{{translations.edit}}</span></a>
 			{% endif %}
 		</div>
 		<div class="badges tags">
 			{% if post['tags'] != [''] %}
+			<svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M6 7V4C6 3.44772 6.44772 3 7 3H13.4142L15.4142 5H21C21.5523 5 22 5.44772 22 6V16C22 16.5523 21.5523 17 21 17H18V20C18 20.5523 17.5523 21 17 21H3C2.44772 21 2 20.5523 2 20V8C2 7.44772 2.44772 7 3 7H6ZM6 9H4V19H16V17H6V9Z"></path></svg>
 			{% for tag in post['tags'] %}
-			<a class="badge tag" href="/tag/{{ tag }}">#{{ tag }}</a>
+			<a class="badge tag" href="/tag/{{ tag }}">{{ tag }}</a>
 			{% endfor %}
 			{% endif %}
 		</div>
+        <div class="post-authors" style="display: flex;gap: .5em;margin-bottom: 1em;align-items: center;">
+            {% for author in post['author_details'] %}
+                <div class="author">
+                	<a href="/a/{{ author.name }}/">
+	                    {% if author.avatar_url %}
+	                        <img src="{{ author.avatar_url }}" alt="{{ author.name }}" class="author-avatar" width="24">
+	                    {% endif %}
+	                    <span class="author-name">{{ author.name }}</span>
+	                </a>
+                </div>
+            {% endfor %}
+        </div>
 		<div class="post-content">{{ post.content|render_markdown }}</div>
-		{% if config.POST_FOOTER_ENABLED == "True" %}
-		<div class="post-footer">{{ to_html(config.POST_FOOTER)|safe }}</div>
+		{% if config.postFooterEnabled == "True" %}
+		<div class="post-footer">{{ to_html(config.postFooter)|safe }}</div>
 		{% endif %}
 	</div>
 </div>
 
-{% if config.COMMENTS_ENABLED == "True" %}
-<h2 class="text-center">Leave a comment!</h2>
-<div class="post-comments">
-	<script src="https://{{ giscus.INSTANCE }}/client.js"
-	data-repo="{{ giscus.REPO }}"
-	data-repo-id="{{ giscus.REPO_ID }}"
-	data-category="{{ giscus.CATEGORY }}"
-	data-category-id="{{ giscus.CATEGORY_ID }}"
-	data-mapping="{{ giscus.MAPPING }}"
-	data-strict="{{ giscus.STRICT }}"
-	data-reactions-enabled="{{ giscus.REACTIONS_ENABLED }}"
-	data-emit-metadata="{{ giscus.EMIT_METADATA }}"
-	data-input-position="{{ giscus.INPUT_POSITION }}"
-	data-theme="{{ giscus.THEME }}"
-	data-lang="{{ giscus.LANG }}"
-	data-loading="{{ giscus.LOADING }}"
-	crossorigin="anonymous"
-	async>
-</script>
+{% if config.commentsEnabled == "True" %}
+<br>
+<h2 class="text-center">{{ translations.leave_a_comment }}</h2>
+<br>
+<div class="post-comments" id="post-comments">
 </div>
 {% endif %}
 {% endblock %}
 {% block scripts %}
 <script>
+initComments({
+  node: document.getElementById("post-comments"),
+  defaultHomeserverUrl: "{{ cactus.defaultHomeserverUrl }}",
+  serverName: "{{ cactus.serverName }}",
+  siteName: "{{ cactus.siteName }}",
+  commentSectionId: "section-{{ post['slug'] }}-{{ post['id'] }}"
+})
+</script>
+<script>
 	function copy(link) {
-		navigator.clipboard.writeText("{{config.BLOG_DOMAIN}}/" + link + "/")
+    	navigator.clipboard.writeText("{{config.blogDomain}}/" + link + "/");
 	}
 </script>
 {% endblock %}

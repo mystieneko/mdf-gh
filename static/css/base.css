@@ -13,7 +13,6 @@ body {
 }
 code {
 	background: var(--code-bg);
-	padding: 3px;
 }
 
 .post-content, .editor-preview > p {
@@ -26,19 +25,33 @@ code {
 
 a {
 	color: var(--accent);
+	text-underline-offset: 3px;
 }
 a:hover {
 	color: var(--link-hover);
-	text-decoration: none;
+/*	text-decoration: none;*/
 }
-.card, .btn, input, .alert { border-radius: var(--border-radius); }
+.card, .btn, .cactus-button, input, .alert { border-radius: var(--border-radius); }
 
 img {
 	border-radius: 3px;
 }
 
 footer {
-	margin-top: 30px;
+	margin: 30px 0;
+}
+footer .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+footer .links .settings select {
+	margin-bottom: 0;
+	padding: 3px;
+	border-radius: var(--border-radius);
+}
+footer .links .settings select:hover, footer .links .settings select:focus {
+	background: var(--second-bg);
 }
 hr {
 	color: var(--color);
@@ -46,9 +59,20 @@ hr {
 h1, h2, h3, h4, h5, h6 {
 	margin-bottom: 0.3em;
 	font-size: revert;
+	word-wrap: anywhere;
+	font-family: var(--font);
 }
 .post-info h1, .post-info h2, .post-info h3, .post-info h4, .post-info h5, .post-info h6 {
 	margin-bottom: 0;
+}
+.author a {
+	display: flex;
+	align-items: center;
+	gap: .5em;
+	text-decoration: none;
+	color: var(--muted);
+	max-width: fit-content;
+	font-size: 14px;
 }
 
 .card {
@@ -57,10 +81,10 @@ h1, h2, h3, h4, h5, h6 {
 	padding: 1em;
 }
 .card.login {
-	width: 400px; margin: auto;
+	width: 300px; margin: auto;
 }
 .navbar {
-	padding: 5px;
+	padding: 1em 5px;
 	align-items: center;
 }
 .navbar .main-content {
@@ -88,27 +112,40 @@ h1, h2, h3, h4, h5, h6 {
 	gap: 1em;
 	flex-wrap: wrap;
 }
-.custom-links p a {
+.custom-links p a, .custom-links p {
 	color: var(--muted);
 	text-decoration: none;
 }
 .custom-links p a:hover {
 	color: var(--color);
 }
-.btn {
+dialog {
+	border: none;
+	margin: auto;
+	border-radius: var(--border-radius);
+	max-width: 60%;
+	width: 600px;
+	background: var(--third-bg);
+	padding: 1em;
+}
+dialog::backdrop {
+	opacity: .65;
+	background: var(--second-bg);
+}
+.btn, .cactus-button {
 	background: var(--btn-bg);
 	color: var(--btn-color);
 	text-decoration: none;
 	border: none;
 	font-family: var(--font);
-	font-size: 16px;
+	font-size: 14px;
 	cursor: pointer;
 	padding: var(--btn-padding);
 }
-.btn, .btn:active {
+.btn, .cactus-button, .btn:active, .cactus-button:active {
 	transition: var(--transition);
 }
-.btn:hover {
+.btn:hover, .cactus-button:hover {
 	background: var(--btn-hover-bg);
 	color: var(--btn-hover-color);
 }
@@ -130,14 +167,14 @@ h1, h2, h3, h4, h5, h6 {
 .text-center {
 	text-align: center;
 }
-.badges .badge, .post-list .time, .post-info .time span {
-	font-size: small;
+.badge, .badges .badge, .post-list .time, .post-info .time span {
+	font-size: 12px;
 	color: var(--muted);
 	display: flex;
 	gap: 5px;
 	align-items: center;
 }
-.badges .badge {
+.badges .badge, .badge {
 	margin-bottom: 10px;
 }
 .badges {
@@ -168,23 +205,34 @@ h1, h2, h3, h4, h5, h6 {
 .form-group .btn {
 	width: fit-content;
 }
-.form-control {
+.form-control, .cactus-login-field > input, .cactus-editor-name > span > input {
 	background: var(--bg);
 	color: var(--color);
 	border: none;
 	padding: 8px 14px;
 	font-size: 14px;
 	margin-bottom: 10px;
-}
-select {
 	font-family: var(--font);
+	border-radius: var(--border-radius);
+	accent-color: var(--accent);
 }
-.form-control[disabled] {
+.expl {
+	font-size: 12px;
+	color: var(--muted);
+	font-family: var(--font) !important;
+}
+.account textarea.form-control {
+	font-family: var(--content-font);
+}
+.form-control[disabled], .cactus-login-field > input[disabled], .cactus-editor-name > span > input[disabled] {
 	opacity: 0.5;
 }
-.form-control:focus-visible {
+.form-control:focus-visible, .cactus-login-field > input:focus-visible, .cactus-editor-name > span > input:focus-visible {
 	outline: var(--input-outline);
 	border-radius: var(--border-radius);
+}
+.task-list-item-checkbox {
+	margin-right: .4em;
 }
 .mt-2 {
 	margin-top: 10px;
@@ -224,6 +272,9 @@ small, .small {
 }
 .post-content,  .card-body p, li {
 	font-family: var(--content-font);
+}
+select, .author-info p {
+	font-family: var(--font);
 }
 .title-slug {
 	display: flex; align-items: center; gap: 10px; justify-content: space-between;
@@ -321,18 +372,21 @@ menu hr {
 	margin: 5px 0;
 }
 .drop-open {
-	padding: 5px;
+	padding: .65em;
 	margin: 0;
 	background: 0 0;
 	display: inline-flex;
 	align-items: center;
 	gap: 3px;
 	color: inherit;
+	font-size: 14px;
+    border-radius: var(--border-radius);
 }
-.drop-open:hover {
+.drop-open:hover, menuitem:hover > .drop-open {
 	background: var(--third-bg);
+	color: var(--color);
 }
-#search {
+#flb_search {
 	margin-bottom: 0;
 	width: 0;
 	background: 0 0;
@@ -341,10 +395,10 @@ menu hr {
 	font-family: var(--font);
 }
 #search-label {
-	width: 2.15384615em;
+	width: 1.85em;
 	position: absolute;
-	top: 0;
-	bottom: 0;
+/*	top: 0;
+	bottom: 0;*/
 	padding: 0;
 	margin-bottom: 0;
 	display: flex;
@@ -354,8 +408,10 @@ menu hr {
 }
 #search-form {
 	position: relative;
+	display: flex;
+	align-items: center;
 }
-#search:hover, #search:focus-visible {
+#flb_search:hover, #flb_search:focus-visible {
 	width: 12em;
 	background: var(--third-bg);
 }
@@ -415,7 +471,8 @@ menu menuitem a {
 .account menu menuitem a svg {
 	width: 28px;
 }
-.account menu menuitem a.selected svg {
+.account menu menuitem a.selected svg,
+.account menu menuitem a:hover svg {
 	fill: currentColor;
 }
 menuitem:hover > menu, menu[open] {
@@ -452,7 +509,11 @@ nav > menu > menuitem menuitem menu {
 	a {
 		cursor: default;
 	}
-	#search:hover, #search:focus-visible {
+	footer .container {
+		flex-direction: column;
+		gap: .8em;
+	}
+	#flb_search:hover, #flb_search:focus-visible {
 		width: 40vw;
 	}
 /*	.account {
@@ -471,7 +532,7 @@ nav > menu > menuitem menuitem menu {
 		padding: 0;
 	}
 	.account menu menuitem a {
-		padding: .6em .8em;
+		padding: 1em .8em;
 	}
 	.title-slug {
 		flex-direction: column;
@@ -512,7 +573,7 @@ nav > menu > menuitem menuitem menu {
 		display: inline-block;
 	}
 	.navbar {
-		padding: 1em !important;
+		padding: .8em 1em !important;
 	}
 	.card, .post-comments {
 		width: 100% !important;
@@ -540,6 +601,9 @@ nav > menu > menuitem menuitem menu {
 	.card-body .actions {
 		display: flex;
 		gap: 4px;
+	}
+	.drop-open {
+		padding: .65em;
 	}
 	nav menuitem a {
 		padding: 0.6em 0.8em;

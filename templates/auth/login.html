@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %} {{translations.login}} — {{ config.blogName }} {% endblock %}
+{% block content %}
+<style>
+	.login .form-control {
+		padding: .7em 16px;
+	}
+</style>
+<div class="card login">
+	<div class="card-body">
+		<img src="{{ config.iconUrl }}" width="48" alt="Icon for {{ config.blogName }}" style="margin: 0 auto 0.5em;display: flex;">
+		<h2 class="card-title text-center" style="margin-bottom: 1em;">{{translations.login_to}} {{ config.blogName }}</h2>
+		<form method="post" style="margin-top: 10px;">
+			<div class="form-group">
+				<label for="name">{{translations.username}}</label>
+				<input type="text" required name="name"
+				placeholder="{{translations.username}}" class="form-control"
+				value="{{ request.form['name'] }}"></input>
+			</div>
+			<div class="form-group">
+				<label for="password">{{translations.password}}</label>
+				<input type="password" required name="password"
+				placeholder="{{translations.password}}" class="form-control"
+				value="{{ request.form['password'] }}"></input>
+			</div>
+			<div class="form-group" style="margin-bottom: 10px;font-size: 14px;flex-direction: row;justify-content: space-between;">
+				<a href="{{ url_for('forgotPassword') }}">Forgot password?</a>
+				<a href="{{ url_for('register') }}">Register</a>
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary mt-2" style="margin: auto;width: 100%;">{{translations.login}}</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

@@ -3,10 +3,17 @@ from flask import Flask, render_template, request, url_for, flash, redirect, ses
 from flask_caching import Cache
 from markupsafe import Markup
 from werkzeug.exceptions import abort
+from werkzeug.utils import secure_filename
 from functools import wraps
 from bleach.sanitizer import Cleaner
 from feedgen.feed import FeedGenerator
 from pathlib import Path
+from itsdangerous import URLSafeTimedSerializer
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import email.utils
 import markupsafe
 import mysql.connector
 import mistune
@@ -16,6 +23,11 @@ import bcrypt
 import time
 import pytz
 import json
+import random
+from functions import *
+from constants import *
+
+""" general stuff """
 
 """
 this is needed to ensure that load_dotenv() loads .env file from the right
@@ -24,151 +36,9 @@ path, because load_dotenv() without arguments doesn't work with WSGI
 env_path = Path.cwd() / ".env"
 load_dotenv(dotenv_path=env_path)
 
-db_user = os.environ.get("DB_USER")
-db_pass = os.environ.get("DB_PASS")
-db_name = os.environ.get("DB_NAME")
-db_host = os.environ.get("DB_HOST")
-
-VERSION = '2024.0302.1'
-VERSION_MOD_LEFT = ''
-VERSION_MOD_RIGHT = '+dev'
-MAIN_CONFIG_FILE = 'config/main.json'
-GISCUS_CONFIG_FILE = 'config/giscus.json'
-
-def loadJSON(config_name):
-    with open(config_name, 'r') as file:
-        return json.load(file)
-
-def saveJSON(config_dict, config_name):
-    with open(config_name, 'w') as file:
-        json.dump(config_dict, file, indent=4)
-
 config = loadJSON(MAIN_CONFIG_FILE)
-giscusConfig = loadJSON(GISCUS_CONFIG_FILE)
-config['CACHE_TIMEOUT'] = int(config['CACHE_TIMEOUT'])
-
-def connect():
-    conn = mysql.connector.connect(
-        host=db_host,
-        user=db_user,
-        password=db_pass,
-        database=db_name,
-        pool_name="dbpool",
-        pool_size=32,
-        autocommit=True
-    )
-    return conn
-
-def getPost(slug):
-    conn = connect()
-    cursor = conn.cursor()
-
-    query = '''SELECT p.id, p.title, p.slug, p.content,
-               p.created, p.tags, DATE_FORMAT(p.created, %s) AS created
-               FROM posts p WHERE p.slug = %s'''
-
-    cursor.execute(query, (config['DATE_FORMAT'], slug,))
-    row = cursor.fetchone()
-
-    if row is None:
-        return None
-
-    post = {
-        'id': row[0],
-        'title': row[1],
-        'slug': row[2],
-        'content': row[3],
-        'created': row[4],
-        'tags': row[5].split(','),
-        'created_formatted': row[6]
-    }
-
-    cursor.close()
-    conn.close()
-
-    return post
-
-def getAllPosts():
-    conn = connect()
-    cursor = conn.cursor()
-    
-    query = '''SELECT p.id, p.title, p.slug, p.content, 
-                           p.created, p.tags,
-                           DATE_FORMAT(p.created, %s) AS created_date  
-                      FROM posts p
-                      ORDER BY p.created DESC'''
-               
-    cursor.execute(query, (config['DATE_FORMAT'],))
-    
-    posts = []
-    
-    for row in cursor:
-        post = {
-           "id": row[0],
-           "title": row[1],
-           "slug": row[2],
-           "content": row[3],
-           "created": row[4],
-           "tags": row[5].split(','),
-           "created_formatted": row[6]
-        }
-        posts.append(post)
-        
-    cursor.close()
-    conn.close()
-    
-    return posts
-
-def getPosts(filters=None):
-    posts = getAllPosts()
-
-    if filters and 'tag' in filters:
-        tagged = [post for post in posts if filters['tag'] in post['tags']]
-        return tagged
-    else:
-        return posts
-
-def getPage(slug):
-
-    conn = connect()
-    cursor = conn.cursor()
-
-    query = '''SELECT pg.id, pg.title, pg.slug, pg.content
-               FROM pages pg WHERE pg.slug = %s'''
-
-    cursor.execute(query, (slug,))
-    row = cursor.fetchone()
-
-    if row is None:  
-        return None
-
-    page = {
-        'id': row[0],
-        'title': row[1],
-        'slug': row[2],
-        'content': row[3],
-    }
-
-    cursor.close()
-    conn.close()
-
-    return page
-
-def getTheme():
-    return session.get('theme') or config['THEME']
-
-def generateSlug(title):
-    slug = re.sub(r'[^\w\s-]', '', title)
-    slug = re.sub(r'\s+', '-', slug)
-    slug = re.sub(r'-+', '-', slug)
-    slug = re.sub(r'/+', '-', slug)
-    slug = slug.lower()
-    return slug
-
-def cached(route):
-    if config['CACHE_ENABLED'] == "True":
-        return cache.cached(timeout=config['CACHE_TIMEOUT'])(route)
-    return route
+cactusConfig = loadJSON(CACTUS_CONFIG_FILE)
+config['cacheTimeout'] = int(config['cacheTimeout'])
 
 cache_config = {
     "DEBUG": True,
@@ -178,8 +48,10 @@ cache_config = {
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("APP_SECRET")
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 app.config.from_mapping(cache_config)
 app.config.from_mapping(config)
+app.config.update(config)
 app.config["AUTOESCAPE"] = True
 cache = Cache(app)
 
@@ -201,6 +73,8 @@ for filename in os.listdir(themes_dir):
             theme_name = theme_match.group(1) if theme_match else 'Unknown Theme'
             themes[theme_name] = filename
 
+""" error handlers """
+
 @app.errorhandler(404)
 def notfound(error):
     return render_template('errorpages/404.html'), 404
@@ -213,9 +87,11 @@ def forbidden(error):
 def internalservererror(error):
     return render_template('errorpages/500.html'), 500
 
+""" context processors """
+
 @app.context_processor
 def inject_translations():
-    lang = session.get('lang') or config['DEFAULT_LANG_SHORT'] or 'en'
+    lang = session.get('lang') or config['defaultLangShort'] or 'en'
     translations = loadJSON(f"translations/strings_{lang}.json")
     return dict(translations=translations, lang=lang)
 
@@ -231,24 +107,43 @@ def inject_theme():
 def inject_tohtml():
     return dict(to_html=mistune.html)
 
-@app.route('/change_lang/', methods=['POST'])
-def changeLang():
-    lang = request.form['language']
-    session['lang'] = lang
-    return redirect(request.referrer)
-
 app.context_processor(inject_version)
+
+@app.template_filter() 
+def render_markdown(text):
+    plugins = ['strikethrough', 'footnotes', 'table', 'url', 'task_lists', 'abbr', 'mark', 'superscript', 'subscript', 'spoiler']
+    allowed_tags = ['p','blockquote','table','tr','td','caption','thead','tbody','th','tfoot','col','colgroup','em','abbr','section','table','strong','input','div','sup','sub','ul','li','h1','h2','h3','h4','h5','h6','ol','a','b','em','strong','i','del','audio','source','br','code','pre','s','img','hr']
+    allowed_attrs = {
+        'img': ['src', 'alt', 'title'],
+        'a': ['href', 'title', 'id'],
+        'input': ['type', 'class', 'checked', 'disabled'],
+        'abbr': ['title'],
+        'sup': ['id', 'class'],
+        'li': ['id'],
+        'th': ['scope'],
+        'blockquote': ['cite']
+    }
+    md = mistune.create_markdown(escape=True, plugins=plugins)
+    html = md(text)
+    cleaner = Cleaner(tags=allowed_tags, attributes=allowed_attrs)
+    clean_html = cleaner.clean(html)
+    return Markup(clean_html)
+
+""" routes """
+
+""" admin routes """
 
 @app.route('/admin/', methods=['GET', 'POST'])
 def admin():
-    if not (session.get('user') and session['user_role'] == 'admin'):
+    if not (session.get('user') and session['user_role'] == 'administrator'):
         abort(403)
     if request.method == 'POST':
         # Save changes
         config = loadJSON(MAIN_CONFIG_FILE)
-        for key, value in request.form.items():
-            # Update the config dictionary with the new value
-            config[key] = value
+        for key in config.keys():
+            if key in request.form:
+                # Update the config dictionary with the new value
+                config[key] = request.form[key]
         saveJSON(config, MAIN_CONFIG_FILE)
         app.config.update(config)
         flash('Changes saved!', 'success')
@@ -258,41 +153,214 @@ def admin():
         config_vars = loadJSON(MAIN_CONFIG_FILE)
         return render_template('admin/index.html', config_vars=config_vars)
 
+@app.route('/admin/users/', methods=['GET', 'POST'])
+def admin_users():
+    if not (session.get('user') and session['user_role'] == 'administrator'):
+        abort(403)
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        if action == 'update_username':
+            new_username = request.form['new_username']
+            user_id = request.form['user_id']
+            cursor.execute('UPDATE users SET name=%s WHERE id=%s', (new_username, user_id))
+            conn.commit()
+
+        elif action == 'update_email':
+            new_email = request.form['new_email']
+            user_id = request.form['user_id']
+            cursor.execute('UPDATE users SET email=%s WHERE id=%s', (new_email, user_id))
+            conn.commit()
+
+        elif action == 'change_password':
+            new_password = request.form['newpass']
+            confirm_password = request.form['newpassconfirm']
+            user_id = request.form['user_id']
+                
+            if new_password != confirm_password:
+                flash('Passwords do not match')
+                
+            new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+            
+            query = """UPDATE users
+                    SET password=%s
+                    WHERE id=%s"""
+
+            cursor.execute(query, (new_hashed_password, user_id))
+            conn.commit()
+
+        elif action == 'update_role':
+            new_role = request.form['new_role']
+            user_id = request.form['user_id']
+            cursor.execute('UPDATE users SET role=%s WHERE id=%s', (new_role, user_id))
+            conn.commit()
+
+        elif action == 'delete_user':
+            user_id = request.form['user_id']
+            cursor.execute('DELETE FROM users WHERE id=%s', (user_id,))
+            conn.commit()
+
+        elif action == 'update_approval':
+            new_approval = request.form['new_approval']
+            user_id = request.form['user_id']
+            cursor.execute('UPDATE users SET is_approved=%s WHERE id=%s', (new_approval, user_id))
+            conn.commit()
+
+        # Add more actions for approving/rejecting users, updating passwords, etc.
+
+    cursor.execute('SELECT id, name, email, password, is_approved, role, avatar_url, bio FROM users')
+    users = []
+    # id  name    email   password    is_approved role    avatar_url  bio 
+    for row in cursor:
+        user = {
+            'id': row[0],
+            'name': row[1],
+            'email': row[2],
+            'password': row[3],
+            'is_approved': row[4],
+            'role': row[5],
+            'avatar_url': row[6],
+            'bio': row[7]
+        }
+        users.append(user)
+    cursor.close()
+    conn.close()
+
+    return render_template('admin/users.html', users=users)
+
 @app.route('/admin/currentconfig/')
 def admin_currentconf():
-    if not session['user_role'] == 'admin':
+    if not (session.get('user') and session['user_role'] == 'administrator'):
         abort(403)
 
     config_vars = loadJSON(MAIN_CONFIG_FILE)
 
     return render_template('admin/currentconf.html', config=config_vars)
 
+""" account routes """
+
 @app.route('/account/', methods=['GET', 'POST'])
 def accountSettings():
     if not session.get('user'):
         return redirect(url_for('login'))
-    return redirect(url_for('accountSecurity'))
+    return redirect(url_for('profileSettings'))
 
-@app.route('/change_theme/', methods=['POST'])
-def changeTheme():
+@app.route('/account/profile/', methods=['GET', 'POST'])
+def profileSettings():
+    if not session.get('user'):
+        return redirect(url_for('login'))
+
+    conn = connect()
+    cursor = conn.cursor()
+
     if request.method == "POST":
-        theme = request.form['theme']
-        print(theme)
-        session['theme'] = theme
-        return redirect(request.referrer)
+        new_username = request.form['newusername']
+        if new_username != session['user']:
+            # check if new username is available
+            cursor.execute('''SELECT name FROM users WHERE name=%s''', (new_username,))
+            username_exists = cursor.fetchone()
 
-@app.route('/account/security/', methods=['GET'])
+            if username_exists:
+                flash('This username is already taken')
+                return render_template('account/profile.html')
+
+            # update username
+            update_sql = """UPDATE users SET name=%s WHERE name=%s"""
+            cursor.execute(update_sql, (new_username, session['user']))
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            flash('Username changed successfully!')
+            session['user'] = new_username
+            return redirect(request.referrer)
+
+        new_bio = request.form['bio']
+        cursor.execute('''SELECT bio FROM users WHERE name=%s''', (session['user'],))
+        stored_bio = cursor.fetchone()
+        if new_bio != stored_bio:
+            update_sql = """UPDATE users SET bio=%s WHERE name=%s"""
+            cursor.execute(update_sql, (new_bio, session['user']))
+            
+            conn.commit()
+
+    cursor.execute('''SELECT avatar_url, bio FROM users  
+        WHERE name=%s''', (session['user'],))
+    row = cursor.fetchone()
+
+    user = {
+        'avatar': row[0],
+        'bio': row[1]
+    }
+    cursor.close()
+    conn.close()
+    return render_template('account/profile.html', user=user)
+
+@app.route('/account/change_avatar/', methods=['POST'])
+def changeAvatar():
+    conn = connect()
+    cursor = conn.cursor()
+    avatar_file = request.files['avatar']
+    if avatar_file:
+        filename = secure_filename(avatar_file.filename)
+        file_extension = os.path.splitext(filename)[1]
+        new_filename = f"{session['user']}{file_extension}"
+        avatar_absolute_path = os.path.join(f'{Path.cwd()}/static/avatars/', new_filename)
+        avatar_file.save(avatar_absolute_path)
+        avatar_relative_path = os.path.join('/static/avatars/', new_filename)
+
+        cursor.execute("""UPDATE users
+            SET avatar_url=%s
+            WHERE name=%s""", (avatar_relative_path, session['user'],))
+    cursor.close()
+    conn.close()
+    return redirect(request.referrer)
+
+@app.route('/account/delete_current_avatar/', methods=['POST'])
+def deleteCurrentAvatar():
+    conn = connect()
+    cursor = conn.cursor()
+
+    # Fetch the current avatar URL from the database
+    cursor.execute("""SELECT avatar_url FROM users WHERE name=%s""", (session['user'],))
+    result = cursor.fetchone()
+    if result and result[0] != '/static/avatars/default.svg':
+        current_avatar_url = result[0]
+        # Convert the relative path to an absolute path
+        current_avatar_path = os.path.join(Path.cwd(), current_avatar_url.strip('/'))
+
+        # Check if the file exists and is not the default avatar, then delete it
+        if os.path.isfile(current_avatar_path) and 'default.svg' not in current_avatar_path:
+            os.remove(current_avatar_path)
+
+    # Update the user's avatar URL to the default avatar
+    cursor.execute("""UPDATE users
+                      SET avatar_url="/static/avatars/default.svg"
+                      WHERE name=%s""", (session['user'],))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect(request.referrer)
+
+@app.route('/account/security/')
 def accountSecurity():
     if not session.get('user'):
         return redirect(url_for('login'))
     return render_template('account/security.html')
 
-@app.route('/account/authentication/', methods=['GET'])
+@app.route('/account/authentication/')
 def accountAuth():
     if not session.get('user'):
         return redirect(url_for('login'))
 
-    return render_template('account/auth.html')
+    return redirect(url_for('profileSettings'))
 
 @app.route('/account/change_password/', methods=['POST'])
 def changePassword():
@@ -332,46 +400,6 @@ def changePassword():
         session.pop('user', None)
         return redirect(url_for('login'))
 
-@app.route('/account/change_username/', methods=['POST'])
-def changeUsername():
-    if not session.get('user'):
-        return redirect(url_for('index'))
-    if request.method == 'POST':
-        current_password = request.form['currentpass_n']
-        new_username = request.form['newusername']
-
-        conn = connect()
-        cursor = conn.cursor()
-
-        # validate current password
-        cursor.execute('''SELECT * FROM users
-            WHERE name=%s''', (session['user'],))
-        user = cursor.fetchone()
-        
-        if not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
-            flash('Current password is incorrect')
-            return render_template('account/base.html')
-
-        # check if new username is available
-        cursor.execute('''SELECT * FROM users WHERE name=%s''', (new_username,))
-        username_exists = cursor.fetchone()
-
-        if username_exists:
-            flash('This username is already taken')
-            return render_template('account/base.html')
-
-        # update username
-        update_sql = """UPDATE users SET name=%s WHERE name=%s"""
-        cursor.execute(update_sql, (new_username, session['user']))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        flash('Username changed successfully!')
-        session.pop('user', None)
-        return redirect(url_for('login'))
-
 @app.route('/account/delete_account/', methods=['POST'])
 def deleteAccount():
     if not session.get('user'):
@@ -387,9 +415,12 @@ def deleteAccount():
             WHERE name=%s''', (session['user'],))  
         user = cursor.fetchone()
         
-        if not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
+        if current_password and not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
             flash('Password is incorrect')
-            return render_template('account/base.html')
+            return redirect(url_for('accountSecurity'))
+        elif not current_password:
+            flash('Enter your password for confirmation')
+            return redirect(url_for('accountSecurity'))
 
         # delete account
         delete_sql = """DELETE FROM users WHERE name=%s"""
@@ -403,14 +434,55 @@ def deleteAccount():
         flash('Your account was successfully deleted.')
         return redirect(url_for('login'))
 
+""" author routes """
+
+@app.route('/a/<author>/')
+def showAuthor(author):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('''SELECT name, role, avatar_url, bio FROM users  
+        WHERE name=%s''', (author,))
+    row = cursor.fetchone()
+    if not row:
+        abort(404)
+    author_ = {
+        'name': row[0],
+        'role': row[1],
+        'avatar': row[2],
+        'bio': row[3]
+    }
+    author_['role'] = author_['role'].capitalize()
+
+    cursor.execute('''SELECT slug, title, IF(LENGTH(content) > 300,CONCAT(LEFT(content,300),'...'),
+content), created, DATE_FORMAT(created, %s) AS created_date FROM posts 
+                      WHERE authors LIKE %s ORDER BY created DESC''', (config['dateFormat'], '%' + author + '%',))
+    posts = [{'slug': row[0], 'title': row[1], 'content': row[2], 'created': row[3], 'created_formatted': row[4]} for row in cursor.fetchall()]
+    posts_count = len(posts)
+    cursor.close()
+    conn.close()
+
+    return render_template('author/profile.html', author=author_, posts=posts, posts_count=posts_count)
+
 user_requests = {}
 
-@app.route('/register/', methods=['GET', 'POST'])
+""" auth routes """
+
+@app.route('/signup/', methods=['GET', 'POST'])
 def register():
-    if config["REGISTRATIONS_OPENED"] == "True":
-        if session.get('user'):
-            flash("Why are you trying to register while logged in???")
-            return redirect(url_for('index'))
+    if config["registrationsOpened"] == "True":
+        # if session.get('user'):
+        #     flash("Why are you trying to register while logged in???")
+        #     return redirect(url_for('index'))
+        num1 = random.randint(1, 20)
+        num2 = random.randint(1, 20)
+        operator = random.choice(['+', '-'])
+        expression = f"{num1} {operator} {num2}"
+        if operator == '+':
+            result = num1 + num2
+        elif operator == '-':
+            # Ensure num1 is greater than or equal to num2
+            num1, num2 = max(num1, num2), min(num1, num2)
+            result = num1 - num2
 
         if request.method == 'POST':
             user_ip = request.remote_addr
@@ -421,7 +493,7 @@ def register():
 
             user_requests[user_ip] = [t for t in user_requests[user_ip] if now - t < 86400]
 
-            if len(user_requests[user_ip]) >= int(config['REGISTER_REQUEST_LIMIT']):
+            if len(user_requests[user_ip]) >= int(config['registerRequestLimit']):
                 abort(429)
 
             user_requests[user_ip].append(now)
@@ -435,7 +507,17 @@ def register():
                 return redirect(url_for('register'))
 
             password = request.form['password']
+            confirm_password = request.form['confirm_password']
+            if (password != confirm_password):
+                flash('Passwords do not match!')
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            captcha = int(request.form['captcha'])
+
+            if captcha != 15:
+                flash('Incorrect CAPTCHA, please try again.')
+                return redirect(url_for('register'))
+
             role = request.form['role']
             if not role:
                 flash('Choose a role')
@@ -456,15 +538,18 @@ def register():
 
             cursor.close()
             conn.close()
-            
-            if config['ADMIN_CONTACT'] != "":
-                flash(Markup('"{}" was registered! If you want it approved, <a href="' + config["ADMIN_CONTACT"] + '">contact the admin</a>').format(name))
+            if config['requireAccountApproval'] == "True":
+                if config['adminContact'] != "":
+                    message = Markup('"{}" was registered! If you want it approved, <a href="' + config["adminContact"] + '">contact the admin</a>').format(name)
+                else:
+                    message = Markup('"{}" was registered! If you want it approved, contact the admin').format(name)
             else:
-                flash(Markup('"{}" was registered! If you want it approved, contact the admin').format(name))
+                message = Markup('"{}" was registered, you can now log in into your account.').format(name)
+            flash(message)
 
             return redirect(url_for('index'))
 
-        return render_template('account/register.html')
+        return render_template('auth/register.html', expression=expression)
     else:
         flash("Registrations are closed")
         return redirect(url_for('index'))
@@ -484,7 +569,7 @@ def login():
                           WHERE name=%s''', (name,))
         user = cursor.fetchone()
 
-        if user and (user[4] == 1 or (user[5] == 'user')) and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+        if user and (config['requireAccountApproval'] == "False" or user[4] == 1 or (user[5] == 'user')) and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
             # If valid credentials, set user in session
             session['user'] = name
             session['user_approved'] = 1
@@ -501,7 +586,134 @@ def login():
 
         cursor.close()
         conn.close()
-    return render_template('account/login.html')
+    return render_template('auth/login.html')
+
+@app.route('/forgot_password/', methods=['GET', 'POST'])
+def forgotPassword():
+    if request.method == "POST":
+        email = request.form['email']
+        conn = connect()
+        cursor = conn.cursor()
+        cursor.execute('''SELECT * FROM users  
+                          WHERE email=%s''', (email,))
+        user = cursor.fetchone()
+        # user[1] == name, user[2] == email, user[3] == password, user[4] == is_approved, user[5] == role
+        if user:
+            token = serializer.dumps(email)
+            # Send email with the reset link containing the token
+            # You need to implement this part using an email service provider
+            reset_link = url_for('resetPassword', token=token, _external=True)
+            sender_email = os.environ.get("EMAIL_ADDRESS")  # Your email address
+            receiver_email = email # Recipient's email address
+            password = os.environ.get("EMAIL_PASSWORD")  # Retrieve email password from environment variable
+
+            # Create a multipart message
+            message = MIMEMultipart("alternative")
+            message["Subject"] = "Password Reset Request"
+            message["From"] = sender_email
+            message["To"] = receiver_email
+            message_id = email.utils.make_msgid()
+            message["Message-ID"] = message_id
+            email_server = os.environ.get("EMAIL_SERVER")
+            smtp_port = os.environ.get("SMTP_PORT")
+
+            # Create the plain-text and HTML version of your message
+            text = f"""\
+            Dear {user[1]},
+
+            We received a request to reset the password associated with your account. If you did not request this change, please disregard this email. Otherwise, please follow the instructions below to reset your password:
+
+            To reset your password, please click on the following link: {reset_link}
+
+            This link will expire in 1 hour, so please reset your password promptly.
+
+            Thank you,
+            {config['blogName']} Team
+            """
+            html = f"""\
+            <html>
+            <body>
+                <p>Dear {user[1]},</p>
+                <p>We received a request to reset the password associated with your account. If you did not request this change, please disregard this email. Otherwise, please follow the instructions below to reset your password:</p>
+                <p>To reset your password, please click on the following link:</p>
+                <p><a href="{reset_link}">Password Reset Link</a></p>
+                <p>If the link doesn't work, try this URL: {reset_link}</p>
+                <p>This link will expire in 1 hour, so please reset your password promptly.</p>
+                <p>Thank you,<br>{config['blogName']} Team</p>
+            </body>
+            </html>
+            """
+
+            # Turn these into plain/html MIMEText objects
+            part1 = MIMEText(text, "plain")
+            part2 = MIMEText(html, "html")
+
+            # Attach parts into message container
+            message.attach(part1)
+            message.attach(part2)
+
+            # Create a secure SSL context
+            context = ssl.create_default_context()
+
+            # Try to log in to server and send email
+            try:
+                with smtplib.SMTP_SSL(email_server, smtp_port, context=context) as server:
+                    server.login(sender_email, password)
+                    server.sendmail(sender_email, receiver_email, message.as_string())
+                flash("An email containing password reset instructions was sent to your inbox. If it doesn't appear there, check the 'Spam' folder in your email provider.")
+            except Exception as e:
+                flash(f"Failed to send email. Error: {e}")
+            cursor.close()
+            conn.close()
+        else:
+            flash('Something went wrong')
+    return render_template('auth/forgotPassword.html')
+
+
+@app.route('/reset_password/<token>/', methods=['GET', 'POST'])
+def resetPassword(token):
+    try:
+        email = serializer.loads(token, max_age=3600)  # Token expires after 1 hour
+    except:
+        # Invalid or expired token
+        flash('Invalid/expired token')
+        return redirect(url_for('forgotPassword'))
+
+    if request.method == "POST":
+        conn = connect()
+        cursor = conn.cursor()
+        password = request.form['password']
+        passconfirm = request.form['passconfirm']
+        if password != passconfirm:
+            flash('Passwords do not match')
+
+        # Update the user's password in the database
+            
+        if password != passconfirm:
+            flash('New passwords do not match')
+            return render_template('account/base.html')
+            
+        new_hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+        query = """UPDATE users
+                SET password=%s
+                WHERE email=%s"""
+
+        cursor.execute(query, (new_hashed_password, email))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        # Redirect to a success page
+        return redirect(url_for('passwordResetSuccess'))
+    return render_template('auth/resetPassword.html')
+
+# @app.route('/password_reset_confirmation/')
+# def passwordResetConfirmation():
+#     return render_template('auth/passwordResetConfirmation.html')
+
+@app.route('/password_reset_success/')
+def passwordResetSuccess():
+    return render_template('auth/passwordResetSuccess.html')
 
 @app.route('/logout/')  
 def logout():
@@ -509,48 +721,244 @@ def logout():
         session.pop('user', None)
         session.pop('user_approved', None)
         session.pop('user_role', None)
-    return redirect(url_for('index'))
+    return redirect(request.referrer)
+
+""" general routes """
 
 @app.route('/')
 def index():
+    if config['minimalMode'] == "True":
+        return redirect(url_for('posts'))
     return render_template('index.html', to_html=mistune.html)
+
+@app.route("/feed/")
+def rssFeed():
+    fg = FeedGenerator()
+    fg.title(config['blogName'])
+    formatted_desc = render_markdown(config['blogDesc'])
+    fg.description(formatted_desc)
+    fg.link(href=config['blogDomain'])
+    
+    posts = getAllPosts() # Custom query to get all posts
+
+    for post in posts:
+        fe = fg.add_entry()
+        fe.id(str(post['id']))
+        fe.title(post['title'])
+        formatted_content = render_markdown(post['content'])
+        fe.content(formatted_content)
+        fe.link(href=url_for("post", slug=post["slug"]))
+        with_tz = str(pytz.utc.localize(post["created"]))
+        fe.pubDate(with_tz)
+
+    return fg.rss_str(pretty=True)
+
+@app.route('/about/')
+def about():
+    return render_template('about.html')
+
+@app.route('/change_lang/', methods=['POST'])
+def changeLang():
+    lang = request.form['language']
+    session['lang'] = lang
+    return redirect(request.referrer)
+
+@app.route('/change_theme/', methods=['POST'])
+def changeTheme():
+    theme = request.form['theme-change']
+    session['theme'] = theme
+    return redirect(request.referrer)
+
+""" posts """
 
 @app.route('/posts/')
 @cached
 def posts():
     conn = connect()
     cursor = conn.cursor()
-
-    query = '''SELECT p.id, p.title, p.slug, p.content, 
-                           p.created,
-                           DATE_FORMAT(p.created, %s) AS created_date  
-                      FROM posts p
-                      ORDER BY p.created DESC'''
-
-    cursor.execute(query, (config['DATE_FORMAT'],))
-
+    
+    query = '''SELECT p.id, p.title, p.slug, IF(LENGTH(content) > 150,CONCAT(LEFT(p.content,150),'...'),
+                p.content), 
+            p.created, p.tags, p.authors,
+            DATE_FORMAT(p.created, %s) AS created_date  
+            FROM posts p
+            ORDER BY p.created DESC'''
+               
+    cursor.execute(query, (config['dateFormat'],))
+    
     posts = []
+    
     for row in cursor:
         post = {
-            'id': row[0],
-            'title': row[1],
-            'slug': row[2],
-            'content': row[3],
-            'created': row[4],
-            'created_formatted': row[5]
+           "id": row[0],
+           "title": row[1],
+           "slug": row[2],
+           "content": row[3],
+           "created": row[4],
+           "tags": row[5].split(','),
+           "authors": row[6].split(','),
+           "created_formatted": row[7]
         }
         posts.append(post)
 
-    posts_count = len(posts)
+    author = []
+    if posts and post['authors']:
+        placeholders = ', '.join(['%s'] * len(post['authors']))  # Create a string of placeholders
+        author_query = f'''SELECT name, avatar_url FROM users WHERE name IN ({placeholders})'''
+        cursor.execute(author_query, post['authors'])  # post['authors'] is already a tuple/list
+        authors_info = cursor.fetchall()  # Fetch all matching rows
 
-    cursor.close()  
+        # Optionally, process authors_info to structure it as needed
+        author = [{'name': author[0], 'avatar_url': author[1]} for author in authors_info]
+
+    cursor.close()
     conn.close()
 
-    return render_template('post/list.html', posts=posts, posts_count=posts_count)
+    posts_count = len(posts)
 
-@app.route('/search/', methods=['GET'])
+    return render_template('post/list.html', posts=posts, posts_count=posts_count, author=author)
+
+@app.route('/new/', methods=['GET', 'POST'])
+def create():
+    if session.get('user'):
+        if request.method == 'POST':
+
+            title = request.form['title']
+            content = request.form['content']
+            slug = request.form['slug']
+
+            tags_str = request.form['tags']
+            tags_str = tags_str.lower().strip()
+            tags = tags_str.split(',')
+            tags = [t.strip() for t in tags]
+
+            authors_str = request.form['authors']
+            authors_str = authors_str.lower().strip()
+            authors = authors_str.split(',')
+            authors = [a.strip() for a in authors]
+
+            if slug:
+                slug = generateSlug(slug)
+            else:
+                slug = generateSlug(title)
+
+            slug_exists = getPost(slug) is not None
+
+            counter = 1
+            while slug_exists:
+                slug = f"{slug}-{counter}"
+                slug_exists = getPost(slug) is not None
+                counter += 1
+
+            if not title:
+                flash('Title is required!')
+                return redirect(url_for('create'))
+            if len(title) < int(config['minimumTitleLength']):
+                flash('Title is too short!')
+                return redirect(url_for('create'))
+            if len(title) > int(config["titleLengthLimit"]):
+                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["titleLengthLimit"] + " allowed)")
+            if len(slug) > int(config["slugLengthLimit"]):
+                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["slugLengthLimit"] + " allowed)")
+
+            else:
+                conn = connect()
+                cursor = conn.cursor()
+                tags_str = ','.join(tags)
+                authors_str = ','.join(authors)
+
+                insert_sql = """INSERT INTO posts  
+                (title, content, slug, tags, authors)
+                VALUES (%s, %s, %s, %s, %s)"""
+
+                cursor.execute(insert_sql, (title, content, slug, tags_str, authors_str))
+                conn.commit()
+
+                cursor.close()
+                conn.close()
+
+                flash('Post created!')
+                return redirect(url_for('post', slug=slug))
+        return render_template('post/create.html')
+    else:
+        abort(403)
+
+@app.route('/<slug>/edit/', methods=['GET', 'POST'])
+def edit(slug):
+    if session.get('user'):
+        post = getPost(slug)
+        if post is None:
+            return abort(404)
+        if request.method == 'POST':
+            title = request.form['title']
+            content = request.form['content']
+            newslug = request.form['slug']
+            new_tags_str = request.form['tags']
+            new_tags_str = new_tags_str.lower().strip()
+            new_tags = [t.strip() for t in new_tags_str.split(',')]
+            new_authors_str = request.form['authors']
+            new_authors_str = new_authors_str.lower().strip()
+            new_authors = [a.strip() for a in new_authors_str.split(',')]
+
+            if newslug:
+                newslug = generateSlug(newslug)
+            else:
+                newslug = generateSlug(title)
+
+            if not title:
+                flash('Title is required!')
+            if len(title) < 5:
+                flash('Title is too short!')
+            if len(title) > int(config["titleLengthLimit"]):
+                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["titleLengthLimit"] + " allowed)")
+            if len(newslug) > int(config["slugLengthLimit"]):
+                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["slugLengthLimit"] + " allowed)")
+                
+            else:
+                conn = connect()
+                cursor = conn.cursor()
+                
+                sql = """UPDATE posts  
+                         SET title=%s, content=%s, slug=%s, tags=%s, authors=%s
+                         WHERE slug=%s"""
+                 
+                cursor.execute(sql, (title, content, newslug, ','.join(new_tags), ','.join(new_authors), slug))
+                conn.commit()
+                
+                cursor.close()
+                conn.close()
+                
+                return redirect(url_for('post', slug=newslug))
+                 
+        return render_template('post/edit.html', post=post)
+    else:
+        abort(403)
+
+@app.route('/<slug>/delete/', methods=['POST'])
+def delete(slug):
+
+    post = getPost(slug)
+    if post is None:
+        abort(404)
+    conn = connect()  
+    cursor = conn.cursor()
+
+    delete_sql = """DELETE FROM posts  
+                    WHERE slug = %s"""
+    
+    cursor.execute(delete_sql, (slug,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    flash('"{}" was successfully deleted!'.format(post['title']))
+    
+    return redirect(url_for('posts'))
+
+@app.route('/search/')
+@cached
 def search():
-    if config['SEARCH_ENABLED'] == "True":
+    if config['searchEnabled'] == "True":
         search_query = request.args.get('q', '')
         if search_query == '' or search_query == ' ':
             flash("Search query cannot be empty")
@@ -559,21 +967,27 @@ def search():
         conn = connect()
         cursor = conn.cursor()
 
-        query = '''SELECT p.id, p.title, p.slug, p.created, DATE_FORMAT(p.created, %s) AS created_date  
-                   FROM posts p WHERE title LIKE %s
-                   ORDER BY p.created DESC'''
-        cursor.execute(query, (config['DATE_FORMAT'], '%' + search_query + '%',))
+        query = '''SELECT id, title, slug, IF(LENGTH(content) > 300,CONCAT(LEFT(content,300),'...'),
+content), created, DATE_FORMAT(created, %s) AS created_date  
+                   FROM posts WHERE title LIKE %s
+                   ORDER BY 
+                       CASE 
+                           WHEN title = %s THEN 1  -- Exact match in title
+                           WHEN title LIKE %s THEN 2  -- Partial match in title
+                           ELSE 3  -- Match in content
+                       END, created DESC'''
+        cursor.execute(query, (config['dateFormat'], '%' + search_query + '%', search_query, '%' + search_query + '%',))
         posts = []
         for row in cursor:
             post = {
                 'id': row[0],
                 'title': row[1],
                 'slug': row[2],
-                'created': row[3],
-                'created_formatted': row[4]
+                'content': row[3],
+                'created': row[4],
+                'created_formatted': row[5]
             }
             posts.append(post)
-        print(posts)
 
         posts_count = len(posts)
 
@@ -584,7 +998,6 @@ def search():
     else:
         return abort(404)
 
-
 @app.route('/tag/<tag>/')
 @cached
 def tag(tag):
@@ -594,10 +1007,20 @@ def tag(tag):
   
     return render_template('tag.html', posts=posts, tag=tag, posts_count=posts_count)
 
+@app.route('/<slug>/')
+@cached
+def post(slug):
+    post = getPost(slug)
+    if post is None:
+        return abort(404)
+    return render_template('post/view.html', post=post, to_html=mistune.html, cactus=cactusConfig)
+
+""" pages """
+
 @app.route('/pages/')
 @cached
 def pages():
-    if config['SHOW_PAGES'] == "True" or session.get('user'):
+    if config['showPages'] == "True":
         conn = connect()
         cursor = conn.cursor()
 
@@ -619,114 +1042,9 @@ def pages():
 
         return render_template('page/list.html', pages=pages)
     else:
-        return redirect(url_for('index'))
+        abort(404)
 
-@app.template_filter() 
-def render_markdown(text):
-    plugins = ['strikethrough', 'footnotes', 'table', 'url', 'task_lists', 'abbr', 'mark', 'superscript', 'subscript', 'spoiler']
-    allowed_tags = ['p','blockquote','table','tr','td','caption','thead','tbody','th','tfoot','col','colgroup','em','abbr','section','table','strong','input','div','sup','sub','ul','li','h1','h2','h3','h4','h5','h6','ol','a','b','em','strong','i','del','audio','source','br','code','pre','s','img','hr']
-    allowed_attrs = {
-        'img': ['src', 'alt', 'title'],
-        'a': ['href', 'title', 'id'],
-        'input': ['type', 'class', 'checked', 'disabled'],
-        'abbr': ['title'],
-        'sup': ['id', 'class'],
-        'li': ['id'],
-        'th': ['scope'],
-        'blockquote': ['cite']
-    }
-    md = mistune.create_markdown(escape=True, plugins=plugins)
-    html = md(text)
-    cleaner = Cleaner(tags=allowed_tags, attributes=allowed_attrs)
-    clean_html = cleaner.clean(html)
-    return Markup(clean_html)
-
-@app.route('/<slug>/')
-@cached
-def post(slug):
-    post = getPost(slug)
-    if post is None:
-        return abort(404)
-    return render_template('post/view.html', post=post, to_html=mistune.html, giscus=giscusConfig)
-
-@app.route('/p/<slug>/')
-@cached
-def page(slug):
-    page = getPage(slug)
-    if page is None:
-        return abort(404)
-    return render_template('page/view.html', page=page, to_html=mistune.html)
-
-@app.route('/create/')
-@cached
-def oldCreate():
-    return redirect(url_for('create'))
-
-@app.route('/create/page/')
-@cached
-def oldCreatePage():
-    return redirect(url_for('createPage'))
-
-@app.route('/new/', methods=('GET', 'POST'))
-def create():
-    if session.get('user'):
-        if request.method == 'POST':
-
-            title = request.form['title']
-            content = request.form['content']
-            slug = request.form['slug']
-
-            tags_str = request.form['tags']
-            tags_str = tags_str.lower().strip()
-            tags = tags_str.split(',')
-            tags = [t.strip() for t in tags]
-
-            if slug:
-                slug = generateSlug(slug)
-            else:
-                slug = generateSlug(title)
-
-            slug_exists = getPost(slug) is not None
-
-            counter = 1
-            while slug_exists:
-                slug = f"{slug}-{counter}"
-                slug_exists = getPost(slug) is not None
-                counter += 1
-
-            if not title:
-                flash('Title is required!')
-                return redirect(url_for('create'))
-            if len(title) < 5:
-                flash('Title is too short!')
-                return redirect(url_for('create'))
-            if len(title) > int(config["TITLE_LENGTH_LIMIT"]):
-                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["TITLE_LENGTH_LIMIT"] + " allowed)")
-            if len(slug) > int(config["SLUG_LENGTH_LIMIT"]):
-                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
-
-            else:
-                conn = connect()
-                cursor = conn.cursor()
-                tags_str = ','.join(tags)
-
-                insert_sql = """INSERT INTO posts  
-                (title, content, slug, tags)
-                VALUES (%s, %s, %s, %s)"""
-
-                cursor.execute(insert_sql, (title, content, slug, tags_str))
-                conn.commit()
-
-                cursor.close()
-                conn.close()
-
-                flash(Markup('Post created! View it <a href="' + url_for('post', slug=slug) + '">here</a>'))
-                return redirect(url_for('index'))
-        return render_template('post/create.html')
-    else:
-        abort(403)
-
-@app.route('/new/page/', methods=('GET', 'POST'))
+@app.route('/new/page/', methods=['GET', 'POST'])
 def createPage():
     if session.get('user'):
         if request.method == 'POST':
@@ -754,10 +1072,10 @@ def createPage():
             if len(title) < 5:
                 flash('Title is too short!')
                 return redirect(url_for('createPage', title=title, content=content))
-            if len(title) > int(config["TITLE_LENGTH_LIMIT"]):
-                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["TITLE_LENGTH_LIMIT"] + " allowed)")
-            if len(slug) > int(config["SLUG_LENGTH_LIMIT"]):
-                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
+            if len(title) > int(config["titleLengthLimit"]):
+                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["titleLengthLimit"] + " allowed)")
+            if len(slug) > int(config["slugLengthLimit"]):
+                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["slugLengthLimit"] + " allowed)")
 
             else:
                 conn = connect()
@@ -779,7 +1097,15 @@ def createPage():
     else:
         abort(403)
 
-@app.route('/p/<slug>/edit/', methods=('GET', 'POST'))
+@app.route('/p/<slug>/')
+@cached
+def page(slug):
+    page = getPage(slug)
+    if page is None:
+        return abort(404)
+    return render_template('page/view.html', page=page, to_html=mistune.html)
+
+@app.route('/p/<slug>/edit/', methods=['GET', 'POST'])
 def editPage(slug):
     if session.get('user'):
         page = getPage(slug)
@@ -799,10 +1125,10 @@ def editPage(slug):
                 flash('Title is required!')
             if len(title) < 5:
                 flash('Title is too short!')
-            if len(title) > int(config["TITLE_LENGTH_LIMIT"]):
-                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["TITLE_LENGTH_LIMIT"] + " allowed)")
-            if len(newslug) > int(config["SLUG_LENGTH_LIMIT"]):
-                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
+            if len(title) > int(config["titleLengthLimit"]):
+                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["titleLengthLimit"] + " allowed)")
+            if len(newslug) > int(config["slugLengthLimit"]):
+                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["slugLengthLimit"] + " allowed)")
                 
             else:
                 conn = connect()
@@ -824,55 +1150,7 @@ def editPage(slug):
     else:
         abort(403)
 
-@app.route('/<slug>/edit/', methods=('GET', 'POST'))
-def edit(slug):
-    if session.get('user'):
-        post = getPost(slug)
-        if post is None:
-            return abort(404)
-        if request.method == 'POST':
-            title = request.form['title']
-            content = request.form['content']
-            newslug = request.form['slug']
-            new_tags_str = request.form['tags']
-            new_tags_str = new_tags_str.lower().strip()
-            new_tags = [t.strip() for t in new_tags_str.split(',')]
-
-            if newslug:
-                newslug = generateSlug(newslug)
-            else:
-                newslug = generateSlug(title)
-
-            if not title:
-                flash('Title is required!')
-            if len(title) < 5:
-                flash('Title is too short!')
-            if len(title) > int(config["TITLE_LENGTH_LIMIT"]):
-                flash('Title is too long! (' + str(len(title)) + " characters out of " + config["TITLE_LENGTH_LIMIT"] + " allowed)")
-            if len(newslug) > int(config["SLUG_LENGTH_LIMIT"]):
-                flash('Slug is too long! (' + str(len(slug)) + " characters out of " + config["SLUG_LENGTH_LIMIT"] + " allowed)")
-                
-            else:
-                conn = connect()
-                cursor = conn.cursor()
-                
-                sql = """UPDATE posts  
-                         SET title=%s, content=%s, slug=%s, tags=%s
-                         WHERE slug=%s"""
-                 
-                cursor.execute(sql, (title, content, newslug, ','.join(new_tags), slug))
-                conn.commit()
-                
-                cursor.close()
-                conn.close()
-                
-                return redirect(url_for('post', slug=newslug))
-                 
-        return render_template('post/edit.html', post=post)
-    else:
-        abort(403)
-
-@app.route('/p/<slug>/delete/', methods=('POST',))
+@app.route('/p/<slug>/delete/', methods=['POST'])
 def deletePage(slug):
 
     page = getPage(slug)
@@ -892,52 +1170,4 @@ def deletePage(slug):
 
     flash('"{}" was successfully deleted!'.format(page['title']))
     
-    return redirect(url_for('index'))
-
-@app.route('/<slug>/delete/', methods=('POST',))
-def delete(slug):
-
-    post = getPost(slug)
-    if post is None:
-        flash('Post not found')  
-        return redirect(url_for('index'))
-    conn = connect()  
-    cursor = conn.cursor()
-
-    delete_sql = """DELETE FROM posts  
-                    WHERE slug = %s"""
-    
-    cursor.execute(delete_sql, (slug,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    flash('"{}" was successfully deleted!'.format(post['title']))
-    
-    return redirect(url_for('index'))
-
-@app.route("/feed/")
-def rssFeed():
-    fg = FeedGenerator()
-    fg.title(config['BLOG_NAME'])
-    formatted_desc = render_markdown(config['BLOG_DESC'])
-    fg.description(formatted_desc)
-    fg.link(href=config['BLOG_DOMAIN'])
-    
-    posts = getAllPosts() # Custom query to get all posts
-
-    for post in posts:
-        fe = fg.add_entry()
-        fe.id(str(post['id']))
-        fe.title(post['title'])
-        formatted_content = render_markdown(post['content'])
-        fe.content(formatted_content)
-        fe.link(href=url_for("post", slug=post["slug"]))
-        with_tz = str(pytz.utc.localize(post["created"]))
-        fe.pubDate(with_tz)
-
-    return fg.rss_str(pretty=True)
-
-@app.route('/about/')
-def about():
-	return render_template('about.html')
+    return redirect(url_for('pages'))

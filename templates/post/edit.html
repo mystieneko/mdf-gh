@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %} {{translations.edit}} "{{ post['title'] }}" — {{ config.BLOG_NAME }} {% endblock %}
+{% block title %} {{translations.edit}} "{{ post['title'] }}" — {{ config.blogName }} {% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
@@ -24,6 +24,11 @@
 				value="{{ request.form['tags'] or ', '.join(post['tags']) }}"></input>
 			</div>
 			<div class="form-group">
+				<input type="text" name="authors"
+				placeholder="{{translations.authors_input}}" class="form-control"
+				value="{{ request.form['authors'] or ', '.join(post['authors']) }}">
+			</div>
+			<div class="form-group">
 				<textarea name="content" id="post-content-input" placeholder="{{translations.content_placeholder}}" class="form-control">{{ request.form['content'] or post['content'] }}</textarea>
 			</div>
 
@@ -32,7 +37,7 @@
 			</form>
 
 			<form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
-				<input type="submit" value="{{translations.delete_post}}" class="btn btn-danger mt-2" onclick="return confirm('{{translations.post_delete_confirm}}')">
+				<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('{{translations.post_delete_confirm}}')">{{translations.delete_post}}</button>
 			</form>
 		</div>
 	</div>

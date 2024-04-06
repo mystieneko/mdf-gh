@@ -23,7 +23,8 @@ CREATE TABLE `posts` (
   `title` text NOT NULL,
   `slug` text NOT NULL,
   `content` text NOT NULL,
-  `tags` text NOT NULL
+  `tags` text NOT NULL,
+  `authors` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `users` (
@@ -32,11 +33,13 @@ CREATE TABLE `users` (
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `is_approved` tinyint(1) DEFAULT NULL,
-  `role` varchar(50) DEFAULT 'user'
+  `role` varchar(50) DEFAULT NULL,
+  `avatar_url` varchar(255) DEFAULT '/static/avatars/default.svg',
+  `bio` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `is_approved`, `role`) VALUES
-(1, 'admin', 'admin@localhost.local', '$2b$12$UyZ68Hchm5O4uxygJMXL9.irbjxWQ2DMT2klBOrDq5TWsFkowgI62', 1, 'admin');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `is_approved`, `role`, `avatar_url`, `bio`) VALUES
+(1, 'admin', 'admin@example.com', '$2b$12$TLPAvGga9O5KWalbc9dowO3EqIVE7CRIp0YXSp3ZA1qQen/.sFkua', 1, 'administrator', '/static/avatars/default.svg', NULL);
 
 
 ALTER TABLE `pages`

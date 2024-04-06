@@ -15,7 +15,8 @@ CREATE TABLE posts (
 	title TEXT NOT NULL,
 	slug TEXT NOT NULL,
 	content TEXT NOT NULL,
-	tags TEXT NOT NULL
+	tags TEXT NOT NULL,
+	authors TEXT NOT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE users (
@@ -24,5 +25,7 @@ CREATE TABLE users (
 	email VARCHAR(100),
 	password VARCHAR(255),
 	is_approved BOOLEAN,
-	role VARCHAR(50)
+	role VARCHAR(50),
+	avatar_url VARCHAR(255) DEFAULT "/static/avatars/default.svg",
+	bio TEXT
 ) ENGINE=InnoDB;

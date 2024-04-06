@@ -16,7 +16,7 @@ Create a MySQL/MariaDB database and connect FlaskBlog to it (in `.env` file) OR 
 Then init the database:  
 ```python3 init_db.py```  
 Rename example configs and configure FlaskBlog how you like:  
-```mv config.example.json config.json; mv giscusConfig.example.json giscusConfig.json```  
+```mv main.example.json main.json; mv cactus.example.json cactus.json```  
 Then run it:  
 `flask run` or `gunicorn -w 4 app:app` (assuming you have gunicorn installed)  
 

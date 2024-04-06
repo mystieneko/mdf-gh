@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %} {{ page['title'] }} — {{ config.BLOG_NAME }} {% endblock %}
+{% block title %} {{ page['title'] }} — {{ config.blogName }} {% endblock %}
 {% block content %}
 <div class="card post">
 	<div class="card-body">
@@ -19,7 +19,7 @@
 {% block scripts %}
 <script>
 	function copy(link) {
-		navigator.clipboard.writeText("{{config.BLOG_DOMAIN}}/p/" + link + "/")
+		navigator.clipboard.writeText("{{config.blogDomain}}/p/" + link + "/")
 	}
 </script>
 {% endblock %}

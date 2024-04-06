@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-{% block title %}{{translations.homepage}} — {{ config.BLOG_NAME }}{% endblock %}
+{% block title %}{{translations.homepage}} — {{ config.blogName }}{% endblock %}
 {% block content %}
 <div class="card mt-2">
 	<div class="card-body">
-		<p>{{ to_html(config.BLOG_DESC)|safe or to_html(config.DEFAULT_DESC)|safe }}</p>
+		<p>{{ to_html(config.blogDesc)|safe or to_html(config.defaultDesc)|safe }}</p>
 	</div>
 </div>
 {% endblock %}

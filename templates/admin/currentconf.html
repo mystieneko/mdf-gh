@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 
-{% block title %} {{translations.current_configuration}} - {{translations.admincp}} {% endblock %}
+{% block title %} {{translations.current_configuration}} - {{translations.admincp}} — {{config.blogName}} {% endblock %}
 {% block content %}
 <div class="card">
 	<div class="card-body">
+		<h1 style="display: flex; align-items: center; gap: .5em; font-size: 24px;"><img src="{{ config.iconUrl }}" width="36">{{translations.admincp}}</h1>
 		<h2>{{translations.current_configuration}}</h2>
 		<div class="badges">
 			<a class="badge btn-link-reset text-reset" href="{{url_for('admin')}}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z"></path></svg> {{translations.back}}</a>

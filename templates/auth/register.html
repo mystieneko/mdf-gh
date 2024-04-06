@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %} {{translations.register_menu}} — {{ config.blogName }} {% endblock %}
+{% block content %}
+<style>
+	.posts {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	@media (max-width: 800px) {
+		.posts {
+			grid-template-columns: repeat(1, 1fr);
+		}
+	}
+</style>
+<div class="card" style="width: 800px;margin: auto;">
+	<div class="card-body">
+		<h2 class="card-title">{{translations.register_menu}}</h2>
+		<form method="post" style="margin-top: 10px;">
+			<div class="posts">
+				<div class="form-group" style="margin-bottom: 10px;">
+					<label for="name">{{translations.username}}</label>
+					<input required type="text" name="name"
+					placeholder="johndoe" class="form-control"
+					value="{{ request.form['name'] }}">
+				</div>
+				<div class="form-group" style="margin-bottom: 10px;">
+					<label for="email">Email</label>
+					<input required type="email" name="email"
+					placeholder="johndoe@example.com" class="form-control"
+					value="{{ request.form['email'] }}">
+				</div>
+				<div class="form-group" style="margin-bottom: 10px;">
+					<label for="password">{{translations.password}}</label>
+					<input required type="password" name="password"
+					placeholder="{{translations.password}}" class="form-control"
+					value="{{ request.form['password'] }}">
+				</div>
+				<div class="form-group" style="margin-bottom: 10px;">
+					<label for="confirm_password">{{translations.confirm_password}}</label>
+					<input required type="password" name="confirm_password"
+					placeholder="{{translations.password}}" class="form-control"
+					value="{{ request.form['confirm_password'] }}">
+				</div>
+				<div class="form-group" style="margin-bottom: 10px;">
+					<label for="captcha">What's 7+8?</label>
+					<input required type="number" name="captcha"
+					placeholder="Captcha" class="form-control"
+					value="{{ request.form['captcha'] }}">
+				</div>
+
+				<div class="form-group" style="margin-bottom: 10px;">
+					<label for="role">{{translations.role}}</label>
+					<select id="role" name="role" class="form-control">
+						<option value="">{{translations.choose_an_option}}</option>
+						<option value="writer">Writer</option>
+						<option value="administrator">Administrator</option>
+					</select>
+					<p class="expl">
+						<b>Writer:</b> can write posts, can't edit server settings
+						<br>
+						<b>Admin:</b> can write posts <i>and</i> edit server settings
+					</p>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary mt-2">{{translations.register}}</button>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

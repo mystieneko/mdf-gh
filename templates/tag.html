@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}Posts tagged with "{{ tag }}" — {{ config['BLOG_NAME'] }}{% endblock %}
+{% block title %}Posts tagged with "{{ tag }}" — {{ config['blogName'] }}{% endblock %}
 {% block content %}
+<div class="head">
 <h2 class="text-center">{{translations.tag}} - {{ tag }}</h2>
-<p class="small text-center">{{ posts_count }} {{translations.post_count}}</p>
+<p class="small text-center">{{ posts_count }} {% if posts_count > 1 %}{{translations.post_count}}{% else %}{{translations.post}}{% endif %}</p>
+</div>
 {% for post in posts %}
 <div class="card post-list mt-2">
 	<div class="card-body postItem-body">

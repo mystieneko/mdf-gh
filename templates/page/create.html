@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %} {{translations.new_page}} — {{ config.BLOG_NAME }} {% endblock %}
+{% block title %} {{translations.new_page}} — {{ config.blogName }} {% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
 <script src="{{ url_for('static', filename='js/easymde.min.js') }}"></script>
@@ -15,10 +15,10 @@
 					placeholder="{{translations.title}}" style="width: 100%; font-size: 18px;" class="form-control"
 					value="{{ request.form['title'] }}"></input>
 				</div>
-<div class="form-group">
+				<div class="form-group">
 					
 					<input type="text" name="slug"
-					placeholder="Slug (optional)" style="" class="form-control"
+					placeholder="{{translations.slug}}" style="" class="form-control"
 					value="{{ request.form['slug'] }}"></input>
 				</div>
 			</div>

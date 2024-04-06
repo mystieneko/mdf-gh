@@ -1,0 +1,113 @@
+{% extends 'account/base.html' %}
+{% block title %}{{translations.profile}} - {{translations.account_settings}} — {{ config.blogName }} {% endblock %}
+{% set sel_profile = 'selected' %}
+{% block settings %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/easymde_custom.css') }}">
+<script src="{{ url_for('static', filename='js/easymde.min.js') }}"></script>
+<h1 style="margin-bottom: 1em;">{{translations.profile}}</h1>
+<a href="/a/{{session['user']}}/" class="btn">{{translations.view_profile_page}}</a><br><br>
+<form action="{{ url_for('profileSettings') }}" method="POST">
+	<div class="form-group">
+		<label for="newusername">{{translations.username}}</label>
+		<input class="form-control" type="username" id="newusername" name="newusername" value="{{ request.form['newusername'] or session['user'] }}">
+	</div>
+	<div class="form-group">
+		<label for="bio">{{translations.bio_input}}</label>
+		<textarea type="text" style="min-height: 100px; height: 100px;width: 100%" name="bio" id="bio" class="form-control" value="{{ request.form['bio'] }}">{{user['bio']}}</textarea>
+	</div>
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary mt-2" style="margin-bottom: 20px;">{{ translations.update_profile }}</button>
+	</div>
+</form>
+<style>
+	form img {
+		height: 48px;
+	}
+	form ul {
+		list-style: none;
+	}
+	.preview p, p.preview {
+		color: var(--muted);
+		font-size: 12px;
+	}
+</style>
+<h2>{{translations.avatar}}</h2>
+<form action="{{ url_for('changeAvatar') }}" method="POST" enctype="multipart/form-data">
+	<div class="form-group" style="flex-direction: row; align-items: center; gap: 1em;">
+				<div class="preview">
+			<img class="avatar" src="{{ user.avatar }}">
+			<p class="preview"></p>
+		</div>
+		<label for="avatar" class="btn" style="width: fit-content; --btn-padding: 3px 12px; cursor: default;">{{ translations.choose_file }}</label>
+		<input type="file" class="input" id="avatar" name="avatar" style="display: none;">
+	</div>
+	<script>
+		const input = document.querySelector('.input');
+		const preview = document.querySelector('.preview');
+		let imagePreview = document.querySelector('.avatar');
+
+		input.style.opacity = 0;
+
+		input.addEventListener('change', updateImageDisplay);
+
+		function updateImageDisplay() {
+			while (preview.firstChild) {
+				preview.removeChild(preview.firstChild);
+			}
+
+			const curFile = input.files[0];
+			if (!curFile) {
+				const para = document.createElement('p');
+				para.textContent = 'No file currently selected for upload';
+				preview.appendChild(para);
+			} else {
+				const listItem = document.createElement('div');
+				const para = document.createElement('p');
+
+				if (validFileType(curFile)) {
+					para.innerHTML = `${curFile.name}, <b>${returnFileSize(curFile.size)}</b>`;
+					imagePreview.src = URL.createObjectURL(curFile);
+
+					listItem.appendChild(imagePreview);
+					listItem.appendChild(para);
+				} else {
+					para.textContent = `File name ${curFile.name}: Not a valid file type. Update your selection.`;
+					listItem.appendChild(para);
+				}
+
+				preview.appendChild(listItem);
+			}
+		}
+
+		const fileTypes = ['image/apng', 'image/bmp', 'image/gif', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/svg+xml', 'image/tiff', 'image/webp', 'image/x-icon'];
+
+		function validFileType(file) {
+			return fileTypes.includes(file.type);
+		}
+
+		function returnFileSize(number) {
+			if (number < 1024) {
+				return number + 'B';
+			} else if (number > 1024 && number < 1048576) {
+				return (number / 1024).toFixed(1) + 'KB';
+			} else if (number > 1048576) {
+				return (number / 1048576).toFixed(1) + 'MB';
+			}
+		}
+	</script>
+	<div class="form-group">
+		<button type="submit" class="btn btn-primary mt-2" style="margin-bottom: 20px;">{{ translations.change_avatar }}</button>
+	</div>
+</form>
+
+<form action="{{ url_for('deleteCurrentAvatar') }}" method="POST">
+	<div class="form-group">
+		<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('Do you really want to delete your current avatar?')" style="margin-bottom: 20px;">{{ translations.delete_current_avatar }}</button>
+	</div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+	const easyMDE = new EasyMDE({element: document.getElementById('bio')});
+</script>
+{% endblock %}

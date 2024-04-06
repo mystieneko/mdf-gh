@@ -1,34 +1,332 @@
 {% extends 'base.html' %}
 
-{% block title %} {{translations.admincp}} — FlaskBlog {% endblock %}
+{% block title %} {{translations.admincp}} — {{config.blogName}} {% endblock %}
 {% block content %}
+<style>
+	h3 {
+		margin: .6em 0;
+	}
+/*	.category {
+		margin: 1.5em 0;
+	}*/
+	.form-control {
+		margin-bottom: 5px;
+	}
+	.form-control + .expl {
+		margin-bottom: 10px;
+	}
+	.expl {
+		font-size: 12px;
+		color: var(--muted);
+		font-family: var(--font) !important;
+	}
+	.posts {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	hr {
+		opacity: .1;
+		margin: .5em 0;
+	}
+	@media (max-width: 800px) {
+		.posts {
+			grid-template-columns: repeat(1, 1fr);
+		}
+	}
+</style>
 <div class="card">
 	<div class="card-body">
-		<h1>{{translations.admincp}}</h1>
+		<h1 style="display: flex; align-items: center; gap: .5em; font-size: 24px;"><img src="{{ config.iconUrl }}" width="36">{{translations.admincp}}</h1>
+		<div class="badges">
+			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_users') }}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14V22H4C4 17.5817 7.58172 14 12 14ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM14.5946 18.8115C14.5327 18.5511 14.5 18.2794 14.5 18C14.5 17.7207 14.5327 17.449 14.5945 17.1886L13.6029 16.6161L14.6029 14.884L15.5952 15.4569C15.9883 15.0851 16.4676 14.8034 17 14.6449V13.5H19V14.6449C19.5324 14.8034 20.0116 15.0851 20.4047 15.4569L21.3971 14.8839L22.3972 16.616L21.4055 17.1885C21.4673 17.449 21.5 17.7207 21.5 18C21.5 18.2793 21.4673 18.551 21.4055 18.8114L22.3972 19.3839L21.3972 21.116L20.4048 20.543C20.0117 20.9149 19.5325 21.1966 19.0001 21.355V22.5H17.0001V21.3551C16.4677 21.1967 15.9884 20.915 15.5953 20.5431L14.603 21.1161L13.6029 19.384L14.5946 18.8115ZM18 17C17.4477 17 17 17.4477 17 18C17 18.5523 17.4477 19 18 19C18.5523 19 19 18.5523 19 18C19 17.4477 18.5523 17 18 17Z"></path></svg> {{translations.user_management}}</a>
+		</div>
 		<h2>{{translations.configuration}}</h2>
 		<div class="badges">
 			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_currentconf') }}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1.18164 12C2.12215 6.87976 6.60812 3 12.0003 3C17.3924 3 21.8784 6.87976 22.8189 12C21.8784 17.1202 17.3924 21 12.0003 21C6.60812 21 2.12215 17.1202 1.18164 12ZM12.0003 17C14.7617 17 17.0003 14.7614 17.0003 12C17.0003 9.23858 14.7617 7 12.0003 7C9.23884 7 7.00026 9.23858 7.00026 12C7.00026 14.7614 9.23884 17 12.0003 17ZM12.0003 15C10.3434 15 9.00026 13.6569 9.00026 12C9.00026 10.3431 10.3434 9 12.0003 9C13.6571 9 15.0003 10.3431 15.0003 12C15.0003 13.6569 13.6571 15 12.0003 15Z"></path></svg> {{translations.current_configuration}}</a>
 		</div>
 		<form action="{{ url_for('admin') }}" method="POST">
-			{% for key, value in config_vars.items() %}
-            {% set select_options = ["True", "False"] if key in ["REGISTRATIONS_OPENED", "CACHE_ENABLED", "SHOW_PAGES", "COMMENTS_ENABLED", "POST_FOOTER_ENABLED", "SEARCH_ENABLED", "SERIF_TITLE", "ALLOW_CHANGING_LANGUAGE", "ALLOW_CHANGING_THEME", "SHOW_POST_DATE_IN_POST", "SHOW_POST_DATE_IN_LIST"] else [] %}
-			<div class="form-group">
-				<label for="{{ key }}" class="var_name">{{ key }}</label>
-                {% if select_options %}
-                <select class="form-control" id="{{ key }}" name="{{ key }}">
-                    {% for option in select_options %}
-                    <option value="{{ option }}" {% if value == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                </select>
-                {% else %}
-				<input class="form-control" type="text" id="{{ key }}" name="{{ key }}" value="{{ value }}">
-                {% endif %}
+			<div class="posts">
+				<div class="category">
+					<h3>Blog Information</h3>
+					<p class="expl">Basic information about the blog such as its name, description, domain, administrator contact, and custom links that appear in the navigation bar.</p>
+					<br>
+					<div class="form-group">
+						<label for="blogName">Name</label>
+						<input class="form-control" type="text" name="blogName" id="blogName" value="{{ config.blogName }}">
+						<p class="expl">Name of your blog.</p>
+					</div>
+					<div class="form-group">
+						<label for="blogDesc">Description</label>
+						<input class="form-control" type="text" name="blogDesc" id="blogDesc" value="{{ config.blogDesc }}">
+						<p class="expl">Description of your blog.</p>
+					</div>
+					<div class="form-group">
+						<label for="defaultDesc">Default Description</label>
+						<input class="form-control" type="text" name="defaultDesc" id="defaultDesc" value="{{ config.defaultDesc }}">
+						<p class="expl">Default blog description.</p>
+					</div>
+					<div class="form-group">
+						<label for="iconUrl">Icon URL</label>
+						<input class="form-control" type="text" name="iconUrl" id="iconUrl" value="{{ config.iconUrl }}">
+						<p class="expl">Icon of your blog. A relative or full URL to the icon. Recommended aspect ratio - 1:1 (square).</p>
+					</div>
+					<div class="form-group">
+						<label for="blogDomain">Domain</label>
+						<input class="form-control" type="text" name="blogDomain" id="blogDomain" value="{{ config.blogDomain }}">
+						<p class="expl">Domain, under which the blog is served from. A full URL to the main page of the blog.</p>
+					</div>
+					<div class="form-group">
+						<label for="adminContact">Admin Contact</label>
+						<input class="form-control" type="text" name="adminContact" id="adminContact" value="{{ config.adminContact }}">
+						<p class="expl">Administrator's contact address. Can be an email address, a link, or a phone number.</p>
+					</div>
+					<div class="form-group">
+						<label for="customLinks">Custom Links</label>
+						<input class="form-control" type="text" name="customLinks" id="customLinks" value="{{ config.customLinks }}">
+						<p class="expl">Additional links that will appear in the navigation bar. Add using Markdown and separate with spaces: <code>[link name 1](link url 1) [link name 2](link url 2)</code></p>
+					</div>
+				</div>
+				<hr class="mobile">
+				<div class="category">
+					<h3>Registration & Permissions</h3>
+					<p class="expl">Settings related to user registrations, including options to allow open registration, set registration request limits, allow users to change language or theme, and require account approval.</p>
+					<br>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_registrationsOpened" 
+						id="_registrationsOpened" 
+						value="{{ config.registrationsOpened }}" 
+						{% if config.registrationsOpened == 'True' %}checked{% endif %}>
+						<input type="hidden" name="registrationsOpened" value="{{ config.registrationsOpened }}">
+						<label style="margin-bottom: 0;" for="_registrationsOpened">Opened (everyone can register)</label>
+					</div>
+					<div class="form-group">
+						<label for="registerRequestLimit">Register Request Limit</label>
+						<input class="form-control" type="number" name="registerRequestLimit" id="registerRequestLimit" value="{{ config.registerRequestLimit }}">
+						<p class="expl">Limit on how many accounts can one user register.</p>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_allowChangingLanguage" 
+						id="_allowChangingLanguage" 
+						value="{{ config.allowChangingLanguage }}" 
+						{% if config.allowChangingLanguage == 'True' %}checked{% endif %}>
+						<input type="hidden" name="allowChangingLanguage" value="{{ config.allowChangingLanguage }}">
+						<label style="margin-bottom: 0;" for="_allowChangingLanguage">Allow changing language</label>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_allowChangingTheme" 
+						id="_allowChangingTheme" 
+						value="{{ config.allowChangingTheme }}" 
+						{% if config.allowChangingTheme == 'True' %}checked{% endif %}>
+						<input type="hidden" name="allowChangingTheme" value="{{ config.allowChangingTheme }}">
+						<label style="margin-bottom: 0;" for="_allowChangingTheme">Allow changing theme</label>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_requireAccountApproval" 
+						id="_requireAccountApproval" 
+						value="{{ config.requireAccountApproval }}" 
+						{% if config.requireAccountApproval == 'True' %}checked{% endif %}>
+						<input type="hidden" name="requireAccountApproval" value="{{ config.requireAccountApproval }}">
+						<label style="margin-bottom: 0;" for="_requireAccountApproval">Require account approval</label>
+					</div>
+				</div>
+				<hr class="mobile">
+				<div class="category">
+					<h3>Setting Limits</h3>
+					<p class="expl">Limitations on the length of titles, slugs, and minimum title length for posts or pages.</p>
+					<br>
+					<div class="form-group">
+						<label for="titleLengthLimit">Title Length Limit</label>
+						<input class="form-control" type="number" name="titleLengthLimit" id="titleLengthLimit" value="{{ config.titleLengthLimit }}">
+						<p class="expl">Length limit for post title in symbols.</p>
+					</div>
+					<div class="form-group">
+						<label for="slugLengthLimit">Slug Length Limit</label>
+						<input class="form-control" type="number" name="slugLengthLimit" id="slugLengthLimit" value="{{ config.slugLengthLimit }}">
+						<p class="expl">Length limit for post slug in symbols.</p>
+					</div>
+					<div class="form-group">
+						<label for="minimumTitleLength">Minimum Title Length</label>
+						<input class="form-control" type="number" name="minimumTitleLength" id="minimumTitleLength" value="{{ config.minimumTitleLength }}">
+						<p class="expl">Minimum title length for post/page in symbols.</p>
+					</div>
+				</div>
+				<hr class="mobile">
+				<div class="category">
+					<h3>Posts & Pages</h3>
+					<p class="expl">Settings related to posts and pages, such as showing pages, enabling comments, post footers, displaying post dates, and enabling minimal mode.</p>
+					<br>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_showPages" 
+						id="_showPages" 
+						value="{{ config.showPages }}" 
+						{% if config.showPages == 'True' %}checked{% endif %}>
+						<input type="hidden" name="showPages" value="{{ config.showPages }}">
+						<label style="margin-bottom: 0;" for="_showPages">Show pages</label>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_commentsEnabled" 
+						id="_commentsEnabled" 
+						value="{{ config.commentsEnabled }}" 
+						{% if config.commentsEnabled == 'True' %}checked{% endif %}>
+						<input type="hidden" name="commentsEnabled" value="{{ config.commentsEnabled }}">
+						<label style="margin-bottom: 0;" for="_commentsEnabled">Enable comments</label>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_postFooterEnabled" 
+						id="_postFooterEnabled" 
+						value="{{ config.postFooterEnabled }}" 
+						{% if config.postFooterEnabled == 'True' %}checked{% endif %}>
+						<input type="hidden" name="postFooterEnabled" value="{{ config.postFooterEnabled }}">
+						<label style="margin-bottom: 0;" for="_postFooterEnabled">Enable post footer</label>
+					</div>
+					<div class="form-group">
+						<label for="postFooter">Post Footer</label>
+						<input class="form-control" type="text" name="postFooter" id="postFooter" value="{{ config.postFooter }}">
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_showPostDateInPost" 
+						id="_showPostDateInPost" 
+						value="{{ config.showPostDateInPost }}" 
+						{% if config.showPostDateInPost == 'True' %}checked{% endif %}>
+						<input type="hidden" name="showPostDateInPost" value="{{ config.showPostDateInPost }}">
+						<label style="margin-bottom: 0;" for="_showPostDateInPost">Show post date in post</label>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_showPostDateInList" 
+						id="_showPostDateInList" 
+						value="{{ config.showPostDateInList }}" 
+						{% if config.showPostDateInList == 'True' %}checked{% endif %}>
+						<input type="hidden" name="showPostDateInList" value="{{ config.showPostDateInList }}">
+						<label style="margin-bottom: 0;" for="_showPostDateInList">Show post date in list</label>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_minimalMode" 
+						id="_minimalMode" 
+						value="{{ config.minimalMode }}" 
+						{% if config.minimalMode == 'True' %}checked{% endif %}>
+						<input type="hidden" name="minimalMode" value="{{ config.minimalMode }}">
+						<label style="margin-bottom: 0;" for="_minimalMode">Enable minimal mode</label>
+					</div>
+				</div>
+				<hr class="mobile">
+				<div class="category">
+					<h3>Appearance & Style</h3>
+					<p class="expl">Settings related to appearance and style of the blog.</p>
+					<br>
+					<div class="form-group">
+						<label for="theme">Default theme</label>
+						<select class="form-control" name="theme">
+							{% for key, value in themes.items() %}
+							<option value="{{ value }}" {% if config.theme == value %}selected{% endif %}>{{ key }}</option>
+							{% endfor %}
+						</select>
+						<p class="expl">Theme that would be picked as the default when opening this blog. <strong>Note:</strong> this setting does not override user's selected theme.</p>
+					</div>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_serifTitle" 
+						id="_serifTitle" 
+						value="{{ config.serifTitle }}" 
+						{% if config.serifTitle == 'True' %}checked{% endif %}>
+						<input type="hidden" name="serifTitle" value="{{ config.serifTitle }}">
+						<label style="margin-bottom: 0;" for="_serifTitle">Serif Title</label>
+					</div>
+				</div>
+				<hr class="mobile">
+				<div class="category">
+					<h3>Cache & Performance</h3>
+					<p class="expl">Caching settings, including enabling/disabling cache, and setting the cache timeout.</p>
+					<br>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input style="margin-bottom: 0;" class="form-control" type="checkbox" name="cacheEnabled" id="cacheEnabled" value="{{ config.cacheEnabled }}" {% if config.cacheEnabled == 'True' %}checked{% endif %}>
+						<label style="margin-bottom: 0;" for="cacheEnabled">Enabled</label>
+					</div>
+					<div class="form-group">
+						<label for="cacheTimeout">Timeout</label>
+						<input class="form-control" type="number" name="cacheTimeout" id="cacheTimeout" value="{{ config.cacheTimeout }}">
+						<p class="expl">Time in seconds, after which the cache expires.</p>
+					</div>
+				</div>
+				<hr class="mobile">
+				<div class="category">
+					<h3>Search & Language</h3>
+					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_searchEnabled" 
+						id="_searchEnabled" 
+						value="{{ config.searchEnabled }}" 
+						{% if config.searchEnabled == 'True' %}checked{% endif %}>
+						<input type="hidden" name="searchEnabled" value="{{ config.searchEnabled }}">
+						<label style="margin-bottom: 0;" for="_searchEnabled">Enable search</label>
+					</div>
+					<div class="form-group">
+						<label for="dateFormat">Date Format</label>
+						<input class="form-control" type="text" name="dateFormat" id="dateFormat" value="{{ config.dateFormat }}">
+					</div>
+					<div class="form-group">
+						<label for="defaultLangShort">Default language</label>
+						<input class="form-control" type="text" name="defaultLangShort" id="defaultLangShort" value="{{ config.defaultLangShort }}">
+					</div>
+				</div>
 			</div>
-			{% endfor %}
-			<div class="form-group">
-				<button type="submit" class="btn">{{translations.save_changes}}</button>
+			<div class="form-group mt-2">
+				<button type="submit" class="btn mt-2">{{translations.save_changes}}</button>
 			</div>
 		</form>
 	</div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+	document.querySelectorAll('input[type=checkbox]').forEach(function(checkbox) {
+		checkbox.addEventListener('change', function() {
+			checkbox.nextElementSibling.value = this.checked ? 'True' : 'False';
+		});
+	});
+</script>
 {% endblock %}

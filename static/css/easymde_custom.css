@@ -368,10 +368,15 @@ div.CodeMirror-dragcursors {
     visibility: visible;
 }
 .CodeMirror-selected {
-    background: var(--third-bg);
+    background: Highlight;
+    color: HighlightText;
+}
+.CodeMirror-selectedtext {
+    color: HighlightText;
 }
 .CodeMirror-focused .CodeMirror-selected {
-    background: var(--third-bg);
+    background: Highlight;
+    color: HighlightText;
 }
 .CodeMirror-focused {
 	outline: var(--input-outline);
@@ -632,7 +637,7 @@ div.CodeMirror-dragcursors {
     margin-top: 0;
 }
 .editor-preview pre {
-    background: #eee;
+/*    background: #eee;*/
     margin-bottom: 10px;
 }
 .editor-preview table td,
