@@ -20,6 +20,9 @@ Rename example configs and configure FlaskBlog how you like:
 ```mv main.example.json main.json; mv cactus.example.json cactus.json```  
 Then run it:  
 `flask run` or `gunicorn -w 4 app:app` (assuming you have gunicorn installed)  
+Login details for default admin account:
+**Login:** admin
+**Password:** changethispassword
 
 ## Usage
 Works on localhost:5000 or localhost:8000, may work in a production environment
