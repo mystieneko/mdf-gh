@@ -3,6 +3,7 @@ static/css/themes/purpledark.css
 static/css/themes/minimal_dark.css
 static/css/themes/mono_dark.css
 static/img/*.*
+!static/img/mdf_favicon.svg
 config/main.json
 config/cactus.json
 static/avatars/*.*

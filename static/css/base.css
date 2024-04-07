@@ -231,6 +231,12 @@ dialog::backdrop {
 	outline: var(--input-outline);
 	border-radius: var(--border-radius);
 }
+.pagination {
+	display: flex;
+    justify-content: center;
+    margin: 1em 0;
+    gap: 0.5em;
+}
 .task-list-item-checkbox {
 	margin-right: .4em;
 }

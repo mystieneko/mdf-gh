@@ -1,6 +1,7 @@
 from pathlib import Path
 
-VERSION = '2024.0405.1'
+APP_NAME = 'MDFlare'
+VERSION = '2024.0407.0'
 VERSION_MOD_LEFT = ''
 VERSION_MOD_RIGHT = ''
 MAIN_CONFIG_FILE = Path.cwd() / 'config/main.json'

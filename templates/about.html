@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %} {{translations.about_flaskblog}} {% endblock %}
+{% block title %} {{translations.about_app}} {% endblock %}
 {% block content %}
 <style>
 	.card-body p {
@@ -10,8 +10,8 @@
 <div class="card">
 	<div class="card-body">
 		<img alt="FlaskBlog logo" src="../static/img/flb_logo_full_w.png" width="200">
-		<h2>{{translations.about_flaskblog}}</h2>
-		{{to_html(translations.about_flaskblog_text)|safe}}
+		<h2>{{translations.about_app}}</h2>
+		{{to_html(translations.about_app_text)|safe}}
 		<h3>Developers</h3>
 		<p><a href="https://codeberg.org/mystie" target="_blank">mystieneko</a> — the sole developer behind this project</p>
 	</div>

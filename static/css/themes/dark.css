@@ -40,9 +40,7 @@
 * {
 	color-scheme: dark;
 }
-h1:not(.post-title h1), h2, h3:not(.post-title h3), h4, h5, h6 {
-	font-weight: 300;
-}
+h1:not(.post-title h1), h2, h3:not(.post-title h3), h4, h5, h6,
 .post-title *, .card-title, .post-content * {
 	font-weight: 400;
 }
@@ -142,7 +140,7 @@ color: var(--danger-color);
 	}
 	.form-group .btn, .form-group .btn-danger, .delete {
 		width: 100%;
-		--btn-padding: .6em 1.2em;
+		--btn-padding: 3px 12px;
 	}
 	.form-actions {
 		flex-direction: column !important;

@@ -7,34 +7,57 @@
 {% if posts | length > 0 %}
 <p class="small text-center">{{ posts_count }} {% if posts_count > 1 and posts_count < 5 %} {{translations.post_2}} {% elif posts_count >= 5 %} {{translations.post_3}} {% else %} {{translations.post}} {% endif %}</p>
 <div class="posts">
-	{% for post in posts %}
-	<div class="card post-list mt-2">
-		<div class="card-body postItem-body">
-			<div class="post-info">
-				{% if config['showPostDateInList'] == "True" %}
-				<span class="badge time bg-primary" style="margin-top: 0; margin-bottom: 5px;"><svg width="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 1.99669C6 1.99669 4 15.9967 3 21.9967C3.66667 21.9967 4.33275 21.9967 4.99824 21.9967C5.66421 18.6636 7.33146 16.8303 10 16.4967C14 15.9967 17 12.4967 18 9.49669L16.5 8.49669C16.8333 8.16336 17.1667 7.83002 17.5 7.49669C18.5 6.49669 19.5042 4.99669 21 1.99669Z"></path></svg> {{ post.created_formatted }}</span>
-				{% endif %}
-				<a style="max-width: fit-content; display: block;" class="post-title" href="{{ url_for('post', slug=post['slug']) }}">
-					<h3>{{ post['title'] }}</h3>
-				</a>
-				{% if post.content | length > 0 %}
-				<p style="font-size: 14px; margin-top: 5px; color: var(--post-content-color);">{{ post.content|safe }}</p>
-				{% endif %}
-			</div>
-			<div class="actions">
-				{% if session['user'] %}
-				<a href="{{ url_for('edit', slug=post['slug']) }}" class="mt-2 btn"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> {{translations.edit_short}}</a>
-				<form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
-					<button type="submit"
-					class="btn btn-danger mt-2"
-					onclick="return confirm('{{translations.post_delete_confirm}}')">{{translations.delete}}</button>
-				</form>
-				{% endif %}
-			</div>
-		</div>
-	</div>
-	{% endfor %}
+    {% for post in posts %}
+    <div class="card post-list mt-2">
+        <div class="card-body postItem-body">
+            <div class="post-info">
+                {% if config['showPostDateInList'] == "True" %}
+                <span class="badge time bg-primary" style="margin-top: 0; margin-bottom: 5px;"><svg width="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21 1.99669C6 1.99669 4 15.9967 3 21.9967C3.66667 21.9967 4.33275 21.9967 4.99824 21.9967C5.66421 18.6636 7.33146 16.8303 10 16.4967C14 15.9967 17 12.4967 18 9.49669L16.5 8.49669C16.8333 8.16336 17.1667 7.83002 17.5 7.49669C18.5 6.49669 19.5042 4.99669 21 1.99669Z"></path></svg> {{ post.created_formatted }}</span>
+                {% endif %}
+                <a style="max-width: fit-content; display: block;" class="post-title" href="{{ url_for('post', slug=post['slug']) }}">
+                    <h3>{{ post['title'] }}</h3>
+                </a>
+                {% if post.content | length > 0 %}
+                <p style="font-size: 14px; margin-top: 5px; color: var(--post-content-color);">{{ post.content|safe }}</p>
+                {% endif %}
+            </div>
+            <div class="actions">
+                {% if session['user'] %}
+                <a href="{{ url_for('edit', slug=post['slug']) }}" class="mt-2 btn"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> {{translations.edit_short}}</a>
+                <form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
+                    <button type="submit"
+                    class="btn btn-danger mt-2"
+                    onclick="return confirm('{{translations.post_delete_confirm}}')">{{translations.delete}}</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
+
+<!-- Pagination links -->
+<div class="pagination">
+    {% if page_number > 1 %}
+        <a href="{{ url_for('posts', page=page_number-1) }}" class="prev-next btn">Previous</a>
+    {% endif %}
+    
+    {% for page in range(1, total_pages + 1) %}
+        {% if page == page_number %}
+            <a href="{{ url_for('posts', page=page) }}" class="active btn">{{ page }}</a>
+        {% elif page == 1 or page == total_pages or (page >= page_number - 2 and page <= page_number + 2) %}
+            <a href="{{ url_for('posts', page=page) }}" class="btn">{{ page }}</a>
+        {% elif page == page_number - 3 or page == page_number + 3 %}
+            <span class="">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_number < total_pages %}
+        <a href="{{ url_for('posts', page=page_number+1) }}" class="prev-next btn">Next</a>
+    {% endif %}
+</div>
+
+
 {% else %}
 <h2 class="text-center" style="margin-top: 50px;">{{translations.no_posts}} {% if session['user_role'] in ['writer', 'administrator'] %}<a href="{{url_for('create')}}">{{translations.create_one}}</a>{% endif %}</h2>
 {% endif %}

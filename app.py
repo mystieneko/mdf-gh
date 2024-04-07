@@ -9,8 +9,11 @@ from bleach.sanitizer import Cleaner
 from feedgen.feed import FeedGenerator
 from pathlib import Path
 from itsdangerous import URLSafeTimedSerializer
+from mysql.connector import errorcode
+from math import ceil
 import smtplib
 import ssl
+import click
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import email.utils
@@ -73,6 +76,79 @@ for filename in os.listdir(themes_dir):
             theme_name = theme_match.group(1) if theme_match else 'Unknown Theme'
             themes[theme_name] = filename
 
+""" cli commands """
+
+def create_database(cursor, dbname):
+    try:
+        cursor.execute("CREATE DATABASE {} DEFAULT CHARACTER SET 'utf8'".format(dbname))
+        print("Database {} created successfully.".format(dbname))
+    except mysql.connector.Error as err:
+        print("Failed creating database: {}".format(err))
+        exit(1)
+
+@app.cli.command("init-db")
+def initdb():
+    dbname = input("Enter database name (default: mdflare): ")
+    if not dbname:
+        dbname = "mdflare"
+
+    db_user = os.environ.get("DB_USER")
+    db_pass = os.environ.get("DB_PASS")
+    os.environ["DB_NAME"] = dbname
+    db_host = os.environ.get("DB_HOST")
+
+    # Database connection config 
+    config = {
+        'user': db_user,
+        'password': db_pass,
+        'host': db_host,
+        'database': dbname
+    }
+
+    # Connect to the database
+    print(f"Connecting to database {dbname} ...")
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+        app.logger.info("Successfully connected to database %s", dbname)
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            app.logger.error('Invalid credentials')
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            cnx = mysql.connector.connect(user=db_user, password=db_pass, host=db_host, database='mysql')
+            cursor = cnx.cursor()
+            create_database(cursor, dbname)
+            cnx.database = dbname
+        else:
+            app.logger.error(err)
+            return
+    else:
+        cursor.close()
+        cnx.close()
+
+    # Reconnect to the newly created database
+    try:
+        cnx = mysql.connector.connect(**config)
+        cursor = cnx.cursor()
+        app.logger.info("Successfully connected to database %s", dbname)
+    except mysql.connector.Error as err:
+        app.logger.error(err)
+        return
+
+    # Create tables
+    with open('schema.sql', 'r') as sql_file:
+        sql_script = sql_file.read()
+        try:
+            cursor.execute(sql_script)
+            print('Database %s was successfully initialized!' % dbname)
+        except mysql.connector.Error as err:
+            app.logger.error("Failed to initialize database %s: %s", dbname, err)
+        finally:
+            if cursor:
+                cursor.close()
+            if cnx:
+                cnx.close()
+
 """ error handlers """
 
 @app.errorhandler(404)
@@ -97,7 +173,7 @@ def inject_translations():
 
 @app.context_processor
 def inject_version():
-    return dict(version=VERSION, version_mod_left=VERSION_MOD_LEFT, version_mod_right=VERSION_MOD_RIGHT)
+    return dict(version=VERSION, version_mod_left=VERSION_MOD_LEFT, version_mod_right=VERSION_MOD_RIGHT, app_name=APP_NAME)
 
 @app.context_processor
 def inject_theme():
@@ -591,20 +667,20 @@ def login():
 @app.route('/forgot_password/', methods=['GET', 'POST'])
 def forgotPassword():
     if request.method == "POST":
-        email = request.form['email']
+        email_ = request.form['email']
         conn = connect()
         cursor = conn.cursor()
         cursor.execute('''SELECT * FROM users  
-                          WHERE email=%s''', (email,))
+                          WHERE email=%s''', (email_,))
         user = cursor.fetchone()
         # user[1] == name, user[2] == email, user[3] == password, user[4] == is_approved, user[5] == role
         if user:
-            token = serializer.dumps(email)
+            token = serializer.dumps(email_)
             # Send email with the reset link containing the token
             # You need to implement this part using an email service provider
             reset_link = url_for('resetPassword', token=token, _external=True)
             sender_email = os.environ.get("EMAIL_ADDRESS")  # Your email address
-            receiver_email = email # Recipient's email address
+            receiver_email = email_ # Recipient's email address
             password = os.environ.get("EMAIL_PASSWORD")  # Retrieve email password from environment variable
 
             # Create a multipart message
@@ -673,7 +749,7 @@ def forgotPassword():
 @app.route('/reset_password/<token>/', methods=['GET', 'POST'])
 def resetPassword(token):
     try:
-        email = serializer.loads(token, max_age=3600)  # Token expires after 1 hour
+        email_ = serializer.loads(token, max_age=3600)  # Token expires after 1 hour
     except:
         # Invalid or expired token
         flash('Invalid/expired token')
@@ -699,7 +775,7 @@ def resetPassword(token):
                 SET password=%s
                 WHERE email=%s"""
 
-        cursor.execute(query, (new_hashed_password, email))
+        cursor.execute(query, (new_hashed_password, email_))
         conn.commit()
         cursor.close()
         conn.close()
@@ -774,17 +850,24 @@ def changeTheme():
 @app.route('/posts/')
 @cached
 def posts():
+    page_number = int(request.args.get('page', 1))  # Get the page number from the query parameter, default to 1
+    per_page = 10  # Number of posts per page
+
     conn = connect()
     cursor = conn.cursor()
     
+    # Calculate the offset based on the page number
+    offset = (page_number - 1) * per_page
+
     query = '''SELECT p.id, p.title, p.slug, IF(LENGTH(content) > 150,CONCAT(LEFT(p.content,150),'...'),
                 p.content), 
             p.created, p.tags, p.authors,
             DATE_FORMAT(p.created, %s) AS created_date  
             FROM posts p
-            ORDER BY p.created DESC'''
+            ORDER BY p.created DESC
+            LIMIT %s OFFSET %s'''  # Add LIMIT and OFFSET for pagination
                
-    cursor.execute(query, (config['dateFormat'],))
+    cursor.execute(query, (config['dateFormat'], per_page, offset))
     
     posts = []
     
@@ -802,21 +885,29 @@ def posts():
         posts.append(post)
 
     author = []
-    if posts and post['authors']:
-        placeholders = ', '.join(['%s'] * len(post['authors']))  # Create a string of placeholders
-        author_query = f'''SELECT name, avatar_url FROM users WHERE name IN ({placeholders})'''
-        cursor.execute(author_query, post['authors'])  # post['authors'] is already a tuple/list
-        authors_info = cursor.fetchall()  # Fetch all matching rows
+    for post in posts:
+        if post['authors']:
+            placeholders = ', '.join(['%s'] * len(post['authors']))  # Create a string of placeholders
+            author_query = f'''SELECT name, avatar_url FROM users WHERE name IN ({placeholders})'''
+            cursor.execute(author_query, post['authors'])  # post['authors'] is already a tuple/list
+            authors_info = cursor.fetchall()  # Fetch all matching rows
 
-        # Optionally, process authors_info to structure it as needed
-        author = [{'name': author[0], 'avatar_url': author[1]} for author in authors_info]
+            # Optionally, process authors_info to structure it as needed
+            author_info = [{'name': author[0], 'avatar_url': author[1]} for author in authors_info]
+            author.append(author_info)
+
+    # Get total count of posts
+    cursor.execute("SELECT COUNT(*) FROM posts")
+    total_posts = cursor.fetchone()[0]
+    total_pages = ceil(total_posts / per_page)
+
 
     cursor.close()
     conn.close()
 
-    posts_count = len(posts)
+    return render_template('post/list.html', posts=posts, posts_count=total_posts, author=author, page_number=page_number, total_pages=total_pages)
 
-    return render_template('post/list.html', posts=posts, posts_count=posts_count, author=author)
+
 
 @app.route('/new/', methods=['GET', 'POST'])
 def create():

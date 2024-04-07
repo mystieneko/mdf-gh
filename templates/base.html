@@ -173,7 +173,7 @@
 				</div>
 				{% endif %}
 			</div>
-			<p class="small powered-by" style="cursor: default; color: var(--muted);">{{translations.powered_by}} FlaskBlog {{ version_mod_left }}{{ version }}{{ version_mod_right }} <span>·</span> <a href="{{url_for('about')}}" class="text-reset">{{translations.about_flaskblog}}</a> <span>·</span> <a href="https://codeberg.org/mystie/flaskblog" target="_blank" class="text-reset">{{translations.source_code}}</a></p>
+			<p class="small powered-by" style="cursor: default; color: var(--muted);">{{translations.powered_by}} {{ app_name }} {{ version_mod_left }}{{ version }}{{ version_mod_right }} <span>·</span> <a href="{{url_for('about')}}" class="text-reset">{{translations.about_app}}</a> <span>·</span> <a href="https://codeberg.org/mystie/MDFlare" target="_blank" class="text-reset">{{translations.source_code}}</a></p>
 		</div>
 	</footer>
 	{% block scripts %} {% endblock %}
