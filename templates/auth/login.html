@@ -8,8 +8,10 @@
 </style>
 <div class="card login">
 	<div class="card-body">
-		<img src="{{ config.iconUrl }}" width="48" alt="Icon for {{ config.blogName }}" style="margin: 0 auto 0.5em;display: flex;">
-		<h2 class="card-title text-center" style="margin-bottom: 1em;">{{translations.login_to}} {{ config.blogName }}</h2>
+		<div>
+			<img src="{{ config.iconUrl }}" width="48" alt="Icon for {{ config.blogName }}" style="margin: 0 auto 0.5em;display: flex;">
+			<h2 class="card-title text-center" style="margin-bottom: 1em;">{{translations.login_to}} {{ config.blogName }}</h2>
+		</div>
 		<form method="post" style="margin-top: 10px;">
 			<div class="form-group">
 				<label for="name">{{translations.username}}</label>
@@ -23,11 +25,15 @@
 				placeholder="{{translations.password}}" class="form-control"
 				value="{{ request.form['password'] }}"></input>
 			</div>
-			<div class="form-group" style="margin-bottom: 10px;font-size: 14px;flex-direction: row;justify-content: space-between;">
-				<a href="{{ url_for('forgotPassword') }}">Forgot password?</a>
-				<a href="{{ url_for('register') }}">Register</a>
+			<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: 0.5em;align-items: center;">
+				<input type="checkbox" class="form-control" id="remember_me" name="remember_me" style="margin: 0;" checked>
+				<label class="form-check-label" for="remember_me" style="margin: 0;">{{ translations.stay_logged_in }}</label>
 			</div>
-			<div class="form-group">
+			<div class="form-group" style="margin-bottom: 10px;font-size: 14px;flex-direction: row;justify-content: space-between;">
+				<a href="{{ url_for('forgotPassword') }}">{{ translations.forgot_password }}</a>
+				<a href="{{ url_for('register') }}">{{translations.register_menu}}</a>
+			</div>
+			<div class="form-group" style="margin-top: 1em;">
 				<button type="submit" class="btn btn-primary mt-2" style="margin: auto;width: 100%;">{{translations.login}}</button>
 			</div>
 		</form>

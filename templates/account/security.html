@@ -7,15 +7,15 @@
 <form action="{{ url_for('changePassword') }}" method="POST">
 	<div class="form-group">
 		<label for="currentpass">{{translations.current_password}}</label>
-		<input class="form-control" type="password" id="currentpass" name="currentpass" value="{{ request.form['currentpass'] }}">
+		<input required class="form-control" type="password" id="currentpass" name="currentpass" value="{{ request.form['currentpass'] }}">
 	</div>
 	<div class="form-group">
 		<label for="newpass">{{translations.new_password}}</label>
-		<input class="form-control" type="password" id="newpass" name="newpass" value="{{ request.form['newpass'] }}">
+		<input required class="form-control" type="password" id="newpass" name="newpass" value="{{ request.form['newpass'] }}">
 	</div>
 	<div class="form-group">
 		<label for="newpassconfirm">{{translations.confirm_new_password}}</label>
-		<input class="form-control" type="password" id="newpassconfirm" name="newpassconfirm" value="{{ request.form['newpassconfirm'] }}">
+		<input required class="form-control" type="password" id="newpassconfirm" name="newpassconfirm" value="{{ request.form['newpassconfirm'] }}">
 	</div>
 	<div class="form-group">
 		<button type="submit" class="btn btn-primary mt-2" style="margin-bottom: 20px;">{{translations.change_password}}</button>
@@ -26,7 +26,7 @@
 <form action="{{ url_for('deleteAccount') }}" method="POST">
 	<div class="form-group">
 		<label for="currentpass_d">{{translations.password}}</label>
-		<input class="form-control" type="password" id="currentpass_d" name="currentpass_d" value="{{ request.form['currentpass_d'] }}">
+		<input required class="form-control" type="password" id="currentpass_d" name="currentpass_d" value="{{ request.form['currentpass_d'] }}">
 	</div>
 	<div class="form-group">
 		<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">{{translations.delete_account}}</button>

@@ -24,7 +24,7 @@
 	"post_3": "записей",
 	"post": "запись",
 	"powered_by": "Работает на",
-	"about_flaskblog": "О FlaskBlog",
+	"about_app": "Об MDFlare",
 	"source_code": "Исходный код",
 	"search_posts": "Поиск записей",
 	"logout": "Выйти",
@@ -62,7 +62,7 @@
 	"delete_post": "Удалить запись",
 	"delete_page": "Удалить страницу",
 	"save_and_return": "Сохранить и вернуться",
-	"about_flaskblog_text": "FlaskBlog - это платформа для блогов, написанная на [Flask](https://flask.palletsprojects.com/), которая разработана быть *простой*, *быстрой* и *неотвлекающей* (то есть, не отвлекать пользователя от статьи).<br> В ней есть все необходимое:<br>- Поддержка [Markdown](https://daringfireball.net/projects/markdown/) (через [EasyMDE](https://github.com/Ionaru/easy-markdown-editor) и [Mistune](https://mistune.lepture.com/))<br>- Множество вариантов настройки<br>- Простой пользовательский интерфейс<br>- Роли учетной записи (если вам нужно, чтобы работало более одного человека над блогом, например, автор и администратор)<br>- *...и многое другое!*",
+	"about_app_text": "MDFlare - это платформа для блогов, написанная на [Flask](https://flask.palletsprojects.com/), которая разработана быть *простой*, *быстрой* и *неотвлекающей* (то есть, не отвлекать пользователя от статьи).<br> В ней есть все необходимое:<br>- Поддержка [Markdown](https://daringfireball.net/projects/markdown/) (через [EasyMDE](https://github.com/Ionaru/easy-markdown-editor) и [Mistune](https://mistune.lepture.com/))<br>- Множество вариантов настройки<br>- Простой пользовательский интерфейс<br>- Роли учетной записи (если вам нужно, чтобы работало более одного человека над блогом, например, автор и администратор)<br>- *...и многое другое!*",
 	"homepage": "Главная",
 	"profile": "Профиль",
 	"update_profile": "Обновить профиль",
@@ -76,5 +76,14 @@
 	"delete_account": "Удалить аккаунт",
 	"danger_zone": "Опасная зона",
 	"leave_a_comment": "Оставьте комментарий!",
-	"user_management": "Управление пользователями"
+	"user_management": "Управление пользователями",
+	"cancel": "Отмена",
+	"stay_logged_in": "Оставаться в системе",
+	"forgot_password": "Забыли пароль?",
+	"reset_password": "Сброс пароля",
+	"step": "шаг",
+	"captcha_question": "Сколько будет",
+	"send_reset_email": "Отправить письмо для сброса",
+	"captcha": "Капча",
+	"unsaved_changes_msg": "Будьте осторожны - у вас есть несохранённые изменения!"
 }

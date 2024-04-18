@@ -594,10 +594,11 @@ def register():
                 flash('Incorrect CAPTCHA, please try again.')
                 return redirect(url_for('register'))
 
-            role = request.form['role']
-            if not role:
-                flash('Choose a role')
-                return redirect(url_for('register'))
+            #role = request.form['role']
+            #if not role:
+            #    flash('Choose a role')
+            #    return redirect(url_for('register'))
+            role = 'user'
             is_approved = 0
             if role == 'user':
                 is_approved = 1
@@ -646,9 +647,19 @@ def login():
         user = cursor.fetchone()
 
         if user and (config['requireAccountApproval'] == "False" or user[4] == 1 or (user[5] == 'user')) and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+            remember_me = request.form.get('remember_me')
+            if remember_me:
+                # Set session to be permanent (expire after 30 days)
+                session.permanent = True
+                #app.permanent_session_lifetime = timedelta(days=30)
+            else:
+                # Set session to expire when the browser is closed
+                session.permanent = False
+
             # If valid credentials, set user in session
             session['user'] = name
             session['user_approved'] = 1
+            session['user_id'] = user[0]
             session['user_role'] = user[5]
             flash("Successfully logged in!")
             return redirect(url_for('index'))
@@ -851,7 +862,7 @@ def changeTheme():
 @cached
 def posts():
     page_number = int(request.args.get('page', 1))  # Get the page number from the query parameter, default to 1
-    per_page = 10  # Number of posts per page
+    per_page = int(config['postsPerPage'])  # Number of posts per page
 
     conn = connect()
     cursor = conn.cursor()
@@ -859,7 +870,7 @@ def posts():
     # Calculate the offset based on the page number
     offset = (page_number - 1) * per_page
 
-    query = '''SELECT p.id, p.title, p.slug, IF(LENGTH(content) > 150,CONCAT(LEFT(p.content,150),'...'),
+    query = '''SELECT p.id, IF(LENGTH(title) > 150,CONCAT(LEFT(p.title,150),'...'), p.title), p.slug, IF(LENGTH(content) > 150,CONCAT(LEFT(p.content,150),'...'),
                 p.content), 
             p.created, p.tags, p.authors,
             DATE_FORMAT(p.created, %s) AS created_date  
@@ -906,8 +917,6 @@ def posts():
     conn.close()
 
     return render_template('post/list.html', posts=posts, posts_count=total_posts, author=author, page_number=page_number, total_pages=total_pages)
-
-
 
 @app.route('/new/', methods=['GET', 'POST'])
 def create():
@@ -1059,7 +1068,7 @@ def search():
         cursor = conn.cursor()
 
         query = '''SELECT id, title, slug, IF(LENGTH(content) > 300,CONCAT(LEFT(content,300),'...'),
-content), created, DATE_FORMAT(created, %s) AS created_date  
+                    content), created, DATE_FORMAT(created, %s) AS created_date  
                    FROM posts WHERE title LIKE %s
                    ORDER BY 
                        CASE 

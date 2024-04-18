@@ -16,11 +16,19 @@
 		<div class="actions">
 			{% if session['user'] %}
 			<a href="{{ url_for('editPage', slug=page['slug']) }}" class="mob-mt-2 btn"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> {{translations.edit_short}}</a>
-			<form class="delete" action="{{ url_for('deletePage', slug=page['slug']) }}" method="POST">
-				<button type="submit"
-				class="btn btn-danger mob-mt-2"
-				onclick="return confirm('{{translations.page_delete_confirm}}')">{{translations.delete}}</button>
-			</form>
+                <dialog>
+                    <div class="dialog-head">
+                        <h3>{{ translations.page_delete_confirm }}</h3>
+                        <span class="badge time" style="overflow: clip;"><button data-dialog-close class="btn-link-reset text-reset" title="Close"><i class="ri-close-large-line"></i></button></span>
+                    </div>
+                    <form class="delete" action="{{ url_for('deletePage', slug=page['slug']) }}" method="POST">
+                        <div class="form-group" style="flex-direction: row;justify-content: end;gap: 0.5em;align-items: center;">
+                            <button type="button" class="btn" data-dialog-close>{{ translations.cancel }}</button>
+                            <button type="submit" class="btn btn-danger">{{translations.delete}}</button>
+                        </div>
+                    </form>
+                </dialog>
+                <button data-dialog-open class="btn btn-danger">{{translations.delete}}</button>
 			{% endif %}
 		</div>
 	</div>
@@ -29,4 +37,7 @@
 {% else %}
 <h2 class="text-center" style="margin-top: 50px;">{{translations.no_pages}} {% if session['user_role'] in ['writer', 'administrator'] %}<a href="{{url_for('createPage')}}">{{translations.create_one}}</a>{% endif %}</h2>
 {% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dialog.js') }}"></script>
 {% endblock %}

@@ -20,6 +20,7 @@ code {
 	margin: 10px 0;
 	line-height: 1.7;
 	font-size: 14px;
+	overflow-wrap: anywhere;
 	color: var(--post-content-color);
 }
 
@@ -34,7 +35,7 @@ a:hover {
 .card, .btn, .cactus-button, input, .alert { border-radius: var(--border-radius); }
 
 img {
-	border-radius: 3px;
+	border-radius: var(--border-radius);
 }
 
 footer {
@@ -60,10 +61,13 @@ h1, h2, h3, h4, h5, h6 {
 	margin-bottom: 0.3em;
 	font-size: revert;
 	word-wrap: anywhere;
-	font-family: var(--font);
+	font-family: var(--heading-font);
 }
 .post-info h1, .post-info h2, .post-info h3, .post-info h4, .post-info h5, .post-info h6 {
 	margin-bottom: 0;
+}
+.posts .card {
+	overflow-wrap: anywhere;
 }
 .author a {
 	display: flex;
@@ -85,7 +89,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 .navbar {
 	padding: 1em 5px;
-	align-items: center;
+	max-width: var(--container-max-width);
+    /* align-items: center; */
+    margin: auto;
 }
 .navbar .main-content {
 	display: flex;
@@ -132,6 +138,17 @@ dialog::backdrop {
 	opacity: .65;
 	background: var(--second-bg);
 }
+.dialog-head {
+	display: flex; align-items: center; justify-content: space-between;
+	margin-bottom: 1em;
+}
+.dialog-head h3 {
+	margin-bottom: 0;
+}
+dialog input.form-control,
+dialog select.form-control {
+	width: 100%;
+}
 .btn, .cactus-button {
 	background: var(--btn-bg);
 	color: var(--btn-color);
@@ -141,6 +158,7 @@ dialog::backdrop {
 	font-size: 14px;
 	cursor: pointer;
 	padding: var(--btn-padding);
+	border: 1px solid transparent;
 }
 .btn, .cactus-button, .btn:active, .cactus-button:active {
 	transition: var(--transition);
@@ -150,10 +168,10 @@ dialog::backdrop {
 	color: var(--btn-hover-color);
 }
 .btn-danger {
-	background: #ff0000;
+	background: var(--btn-danger-bg);
 }
 .btn-danger:hover {
-	background: #AC0000;
+	background: var(--btn-danger-bg-hover);
 }
 .navbar-brand {
 	text-decoration: none;
@@ -174,9 +192,9 @@ dialog::backdrop {
 	gap: 5px;
 	align-items: center;
 }
-.badges .badge, .badge {
+/*.badges .badge, .badge {
 	margin-bottom: 10px;
-}
+}*/
 .badges {
 	display: flex;
 	gap: 8px;
@@ -204,6 +222,40 @@ dialog::backdrop {
 }
 .form-group .btn {
 	width: fit-content;
+}
+input[type="checkbox"]:not(.post-content input[type="checkbox"]) {
+	width: 18px;
+	height: 18px;
+	padding: 0 !important;
+	appearance: none;
+	border: 1px solid transparent;
+	margin-right: 5px;
+	display: inline-flex;
+	font-family: "remixicon";
+}
+input[type="checkbox"] {
+	background: var(--bg);
+}
+input[type="checkbox"]:not(.post-content input[type="checkbox"])::before {
+	content: '';
+	margin: auto;
+}
+input[type="checkbox"]:hover {
+	background: var(--third-bg);
+}
+input[type="checkbox"]:active {
+	background: var(--btn-bg);
+}
+input[type="checkbox"]:checked:not(.post-content input[type="checkbox"])::before {
+	content: '\eb7b';
+	font-size: 16px;
+}
+input[type="checkbox"]:checked {
+	background: var(--accent);
+	color: var(--bg);
+}
+input[type="checkbox"]:checked:hover {
+	background: var(--link-hover);
 }
 .form-control, .cactus-login-field > input, .cactus-editor-name > span > input {
 	background: var(--bg);
@@ -237,6 +289,11 @@ dialog::backdrop {
     margin: 1em 0;
     gap: 0.5em;
 }
+.pagination a {
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
 .task-list-item-checkbox {
 	margin-right: .4em;
 }
@@ -266,15 +323,17 @@ small, .small {
 	font-size: 12px;
 }
 .alert {
-	text-align: center;
-	width: fit-content;
-	margin: 10px auto;
-	display: flex;
-	align-items: center;
-	flex-direction: row-reverse;
 	background: var(--second-bg);
-	padding: 3px 8px;
-	font-size: 14px;
+    padding: 4px 12px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
+    flex-direction: row-reverse;
+    display: flex;
+    font-size: 14px;
+    max-width: fit-content;
+    align-items: center;
+    justify-content: center;
+    margin: 1em auto;
 }
 .post-content,  .card-body p, li {
 	font-family: var(--content-font);
@@ -290,12 +349,14 @@ select, .author-info p {
 }
 #alert-close {
 	appearance: none;
-	color: var(--accent);
-	width: 24px;
-	height: 24px;
-	font-size: 24px;
-	cursor: pointer;
-	margin-right: -4px;
+    color: var(--accent);
+    width: 24px;
+    height: 24px;
+    font-size: 22px;
+    background: 0 0 !important;
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: -4px;
 }
 #alert-close:hover {
 	color: var(--link-hover);
@@ -399,6 +460,7 @@ menu hr {
 	transition: 0.5s;
 	text-indent: 18px;
 	font-family: var(--font);
+	cursor: default;
 }
 #search-label {
 	width: 1.85em;
@@ -488,7 +550,7 @@ menuitem:hover > menu, menu[open] {
 }
 menu menuitem a:hover, menu menuitem a.selected {
 	background: var(--btn-bg);
-	color: var(--color) !important;
+	color: var(--color);
 }
 menuitem:hover > menu > menuitem,
 menu:hover > menuitem, menu[open] {
@@ -512,6 +574,13 @@ nav > menu > menuitem menuitem menu {
 }
 
 @media (max-width: 800px) {
+	dialog {
+		max-width: var(--body-max-width);
+		width: 400px;
+	}
+	.dialog-head h3 {
+		max-width: 90%;
+	}
 	a {
 		cursor: default;
 	}
@@ -559,9 +628,9 @@ nav > menu > menuitem menuitem menu {
 	.navbar .main-content {
 		align-items: center;
 	}
-	.custom-links {
+/*	.custom-links {
 		margin-top: .5em;
-	}
+	}*/
 	.desktop {
 		display: none;
 	}

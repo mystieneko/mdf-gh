@@ -1,0 +1,18 @@
+/* @theme Auto */
+
+@font-face {
+	font-family: "Cantarell";
+	font-display: block;
+	font-weight: 100 800;
+	src: local("Cantarell"), url("../../fonts/cantarell.woff2") format("woff2-variations");
+}
+/* Import dark.css if prefers-color-scheme is dark */
+@media (prefers-color-scheme: dark) {
+  @import url('dark.css');
+}
+
+/* Import light.css if prefers-color-scheme is light */
+@media (prefers-color-scheme: light) {
+  @import url('light.css');
+}
+

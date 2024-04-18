@@ -9,6 +9,7 @@
     height: 300px;
     color: var(--color);
     direction: ltr;
+    border: 1px solid transparent;
 }
 .CodeMirror-lines {
     padding: 4px 0;
@@ -379,7 +380,7 @@ div.CodeMirror-dragcursors {
     color: HighlightText;
 }
 .CodeMirror-focused {
-	outline: var(--input-outline);
+	border: var(--input-outline);
 }
 .CodeMirror-crosshair {
     cursor: crosshair;

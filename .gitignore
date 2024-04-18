@@ -2,8 +2,11 @@
 static/css/themes/purpledark.css
 static/css/themes/minimal_dark.css
 static/css/themes/mono_dark.css
+static/css/themes/modern.css
+static/css/themes/terminal.css
 static/img/*.*
-!static/img/mdf_favicon.svg
+!static/img/mdf_favicon.png
+!static/img/mdf_logo.png
 config/main.json
 config/cactus.json
 static/avatars/*.*

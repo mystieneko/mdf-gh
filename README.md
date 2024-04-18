@@ -1,5 +1,5 @@
 
-<img alt="FlaskBlog logo" src="./static/img/flb_logo_full_w.png" width="400">
+<img alt="MDFlare logo" src="./static/img/mdf_logo.png" width="400">
 
 a simple blog system written in Flask with Markdown support
 
@@ -10,19 +10,19 @@ Create a virtual environment and activate it:
 Install required packages:  
 ```pip install -r requirements.txt```  
 ### Shared hosting
-If your shared hosting provider supports [WSGI](https://w.wiki/_vTN2), [FastCGI](https://w.wiki/9EeQ), or something similar, use it (technically any CGI protocol could work, but FlaskBlog was only tested with WSGI)
+If your shared hosting provider supports [WSGI](https://w.wiki/_vTN2), [FastCGI](https://w.wiki/9EeQ), or something similar, use it (technically any CGI protocol could work, but MDFlare was only tested with WSGI)
 
 ## Post-installation
-Create a MySQL/MariaDB database and connect FlaskBlog to it (in `.env` file) OR import `flaskblog.sql` file  
+Create a MySQL/MariaDB database and connect MDFlare to it (in `.env` file) OR import `mdflare.sql` file  
 Then init the database:  
-```python3 init_db.py```  
-Rename example configs and configure FlaskBlog how you like:  
+`flask init-db` (recommended) or `python3 init_db.py`  
+Rename example configs and configure MDFlare how you like:  
 ```mv main.example.json main.json; mv cactus.example.json cactus.json```  
 Then run it:  
 `flask run` or `gunicorn -w 4 app:app` (assuming you have gunicorn installed)  
-Login details for default admin account:
-**Login:** admin
-**Password:** changethispassword
+Login details for default admin account:  
+**Login:** admin  
+**Password:** changethispassword  
 
 ## Usage
 Works on localhost:5000 or localhost:8000, may work in a production environment

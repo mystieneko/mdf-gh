@@ -6,6 +6,99 @@
 	font-weight: 100 800;
 	src: local("Cantarell"), url("../../fonts/cantarell.woff2") format("woff2-variations");
 }
+/* im sorry but why the fuck do i need to import font variations one by one??? */
+@font-face {
+	font-display: swap; 
+	font-family: 'DM Sans';
+	font-style: normal;
+	font-weight: 400;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: italic;
+	font-weight: 400;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-italic.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: normal;
+	font-weight: 500;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-500.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: italic;
+	font-weight: 500;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-500italic.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: normal;
+	font-weight: 600;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-600.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: italic;
+	font-weight: 600;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-600italic.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: normal;
+	font-weight: 700;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-700.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: italic;
+	font-weight: 700;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-700italic.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: normal;
+	font-weight: 800;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-800.woff2') format('woff2');
+}
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: italic;
+	font-weight: 800;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-800italic.woff2') format('woff2');
+}
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: normal;
+	font-weight: 900;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-900.woff2') format('woff2');
+}
+@font-face {
+	font-display: swap;
+	font-family: 'DM Sans';
+	font-style: italic;
+	font-weight: 900;
+	src: url('../../fonts/dmsans/dm-sans-v15-latin-900italic.woff2') format('woff2');
+}
 
 :root, ::backdrop {
 	--bg: #161616;
@@ -21,14 +114,18 @@
 	--btn-danger-bg: #930000;
 	--btn-danger-bg-hover: #710000;
 	--danger-color: #f77;
+	--primary-bg: #005095;
+	--primary-bg-hover: #0065bb;
+	--primary-color: var(--color);
 	--muted: #b9b9b9;
 	--input-outline: 1px solid var(--btn-hover-bg);
 	--link-hover: #0071b5;
+	--heading-font: "DM Sans";
 	--font: "Cantarell";
 	--content-font: sans-serif;
 	--border-radius: 3px;
 	--btn-padding: 3px 12px;
-	--form-btn-padding: .5em 1em;
+	--form-btn-padding: .45em 1em;
 	--body-max-width: 100vw;
 	--container-max-width: 90vw;
 	--image-max-width: 100%;
@@ -36,6 +133,35 @@
 	--transition: 0s;
 	--post-content-color: #dedede;
 	--fourth-bg: #33333399;
+}
+#alert-close {
+	margin: 0;
+}
+.btn-primary {
+	background: var(--primary-bg);
+	color: var(--primary-color);
+}
+.btn-primary:hover {
+	background: var(--primary-bg-hover);
+}
+input[type="checkbox"]:checked {
+	background: var(--primary-bg);
+	color: var(--primary-color);
+}
+input[type="checkbox"]:checked:hover {
+	background: var(--primary-bg-hover);
+}
+input[type="checkbox"] + input + label,
+input[type="checkbox"] + label,
+input[type="checkbox"]:not(.post-content input[type="checkbox"]) {
+	cursor: pointer;
+}
+input[type="checkbox"]:checked::before {
+	transition: scale .2s;
+    scale: 1;
+}
+input[type="checkbox"]:not(#alert-close, :checked)::before {
+	scale: 0;
 }
 * {
 	color-scheme: dark;
@@ -82,11 +208,11 @@ code {
 	gap: .6em;
 	flex-direction: row;
 }
-.post-title h3 {
+.post-title h3:not(.profile .post-title h3) {
 text-overflow: ellipsis;
 overflow: hidden;
-white-space: nowrap;
-max-width: 26vw;
+/*white-space: nowrap;*/
+/*max-width: 26vw;*/
 }
 .posts {
 	display: grid;
@@ -113,6 +239,7 @@ grid-row-gap: 1em;
 	display: inline-flex;
 	gap: 5px;
 	align-items: center;
+	min-width: fit-content;
 }
 .card-body .actions a:hover {
 	background: var(--btn-hover-bg);
@@ -140,7 +267,7 @@ color: var(--danger-color);
 	}
 	.form-group .btn, .form-group .btn-danger, .delete {
 		width: 100%;
-		--btn-padding: 3px 12px;
+/*		--btn-padding: 3px 12px;*/
 	}
 	.form-actions {
 		flex-direction: column !important;
@@ -168,5 +295,12 @@ color: var(--danger-color);
 	}
 	nav menuitem > menu {
 		margin-top: 10px; /* fixes misclicking on 'posts' link when logged out */
+	}
+	input[type="checkbox"]:checked::before {
+		font-size: 18px !important;
+	}
+	input[type="checkbox"], input[type="radio"] {
+		width: 24px !important;
+		height: 24px !important;
 	}
 }

@@ -73,7 +73,6 @@ def getPost(slug):
 
     return post
 
-
 def getAllPosts():
     conn = connect()
     cursor = conn.cursor()

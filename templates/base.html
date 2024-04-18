@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}">
 <head>
-	<!-- Required meta tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="shortcut icon" href="{{ config.iconUrl }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/base.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 	{% set theme = "css/themes/" + theme_name %}
-	<link rel="stylesheet" href="{{ url_for('static', filename=theme) }}">
-		{% if config.minimalMode == "True" %}
+	{% if theme_name != "auto.css" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename=theme) }}">
+	{% else %}
+    {% set theme = "css/themes/" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename=theme ~ 'light.css') }}" media="(prefers-color-scheme: light)">
+    <link rel="stylesheet" href="{{ url_for('static', filename=theme ~ 'dark.css') }}" media="(prefers-color-scheme: dark)">
+	{% endif %}
+	{% if config.minimalMode == "True" %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/minimal_mode_overrides.css') }}">
 	{% endif %}
+	<link href="{{ url_for('static', filename='fonts/remixicon.css') }}" rel="stylesheet">
 	<title>{% block title %} {% endblock %}</title>
 </head>
 <body>
-	{% if config['serifTitle'] == "True" %}
+	{% if config.serifTitle == "True" %}
 	<style>
 		.post-title h1, .post-title h3 {
 			font-family: 'Garamond', serif;
@@ -178,20 +184,19 @@
 	</footer>
 	{% block scripts %} {% endblock %}
 	<script>
-		document.addEventListener('DOMContentLoaded', function() {
-		    const alertCloseInputs = document.querySelectorAll('.alert-close');
-		    const alert = document.querySelector('.alert');
+document.addEventListener('DOMContentLoaded', function() {
+    const alertCloseInputs = document.querySelectorAll('.alert-close');
 
-		    alertCloseInputs.forEach(function(alertClose) {
-		        alertClose.addEventListener('change', function() {
-		            if (alertClose.checked) {
-		                alert.classList.add('hide');
-		            } else {
-		                alert.classList.remove('hide');
-		            }
-		        });
-		    });
-		});
+    alertCloseInputs.forEach(function(alertClose) {
+        alertClose.addEventListener('change', function() {
+            const alert = alertClose.closest('.alert');
+            if (alertClose.checked) {
+                alert.remove();
+            }
+        });
+    });
+});
+
 	</script>
 </body>
 </html>

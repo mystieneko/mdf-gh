@@ -78,5 +78,14 @@
 	"delete_account": "Delete Account",
 	"danger_zone": "Danger Zone",
 	"leave_a_comment": "Leave a comment!",
-	"user_management": "User Management"
+	"user_management": "User Management",
+	"cancel": "Cancel",
+	"stay_logged_in": "Stay logged in",
+	"forgot_password": "Forgot password?",
+	"reset_password": "Reset Password",
+	"step": "step",
+	"captcha_question": "What's",
+	"send_reset_email": "Send a reset email",
+	"captcha": "Captcha",
+	"unsaved_changes_msg": "Be careful - you have unsaved changes!"
 }

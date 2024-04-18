@@ -37,13 +37,13 @@
 	<div class="card-body">
 		<h1 style="display: flex; align-items: center; gap: .5em; font-size: 24px;"><img src="{{ config.iconUrl }}" width="36">{{translations.admincp}}</h1>
 		<div class="badges">
-			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_users') }}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14V22H4C4 17.5817 7.58172 14 12 14ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM14.5946 18.8115C14.5327 18.5511 14.5 18.2794 14.5 18C14.5 17.7207 14.5327 17.449 14.5945 17.1886L13.6029 16.6161L14.6029 14.884L15.5952 15.4569C15.9883 15.0851 16.4676 14.8034 17 14.6449V13.5H19V14.6449C19.5324 14.8034 20.0116 15.0851 20.4047 15.4569L21.3971 14.8839L22.3972 16.616L21.4055 17.1885C21.4673 17.449 21.5 17.7207 21.5 18C21.5 18.2793 21.4673 18.551 21.4055 18.8114L22.3972 19.3839L21.3972 21.116L20.4048 20.543C20.0117 20.9149 19.5325 21.1966 19.0001 21.355V22.5H17.0001V21.3551C16.4677 21.1967 15.9884 20.915 15.5953 20.5431L14.603 21.1161L13.6029 19.384L14.5946 18.8115ZM18 17C17.4477 17 17 17.4477 17 18C17 18.5523 17.4477 19 18 19C18.5523 19 19 18.5523 19 18C19 17.4477 18.5523 17 18 17Z"></path></svg> {{translations.user_management}}</a>
+			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_users') }}"><i class="ri-user-settings-fill"></i> {{translations.user_management}}</a>
 		</div>
 		<h2>{{translations.configuration}}</h2>
 		<div class="badges">
-			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_currentconf') }}"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1.18164 12C2.12215 6.87976 6.60812 3 12.0003 3C17.3924 3 21.8784 6.87976 22.8189 12C21.8784 17.1202 17.3924 21 12.0003 21C6.60812 21 2.12215 17.1202 1.18164 12ZM12.0003 17C14.7617 17 17.0003 14.7614 17.0003 12C17.0003 9.23858 14.7617 7 12.0003 7C9.23884 7 7.00026 9.23858 7.00026 12C7.00026 14.7614 9.23884 17 12.0003 17ZM12.0003 15C10.3434 15 9.00026 13.6569 9.00026 12C9.00026 10.3431 10.3434 9 12.0003 9C13.6571 9 15.0003 10.3431 15.0003 12C15.0003 13.6569 13.6571 15 12.0003 15Z"></path></svg> {{translations.current_configuration}}</a>
+			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_currentconf') }}"><i class="ri-eye-fill"></i> {{translations.current_configuration}}</a>
 		</div>
-		<form action="{{ url_for('admin') }}" method="POST">
+		<form action="{{ url_for('admin') }}" method="POST" id="config-form">
 			<div class="posts">
 				<div class="category">
 					<h3>Blog Information</h3>
@@ -182,6 +182,11 @@
 						<input type="hidden" name="showPages" value="{{ config.showPages }}">
 						<label style="margin-bottom: 0;" for="_showPages">Show pages</label>
 					</div>
+					<div class="form-group">
+						<label for="postsPerPage">Posts per page</label>
+						<input class="form-control" type="number" name="postsPerPage" id="postsPerPage" value="{{ config.postsPerPage }}">
+						<p class="expl">How many posts per page to show.</p>
+					</div>
 					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
 						<input 
 						style="margin-bottom: 0;" 
@@ -280,8 +285,16 @@
 					<p class="expl">Caching settings, including enabling/disabling cache, and setting the cache timeout.</p>
 					<br>
 					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
-						<input style="margin-bottom: 0;" class="form-control" type="checkbox" name="cacheEnabled" id="cacheEnabled" value="{{ config.cacheEnabled }}" {% if config.cacheEnabled == 'True' %}checked{% endif %}>
-						<label style="margin-bottom: 0;" for="cacheEnabled">Enabled</label>
+						<input 
+						style="margin-bottom: 0;" 
+						class="form-control" 
+						type="checkbox" 
+						name="_cacheEnabled" 
+						id="_cacheEnabled" 
+						value="{{ config.cacheEnabled }}" 
+						{% if config.cacheEnabled == 'True' %}checked{% endif %}>
+						<input type="hidden" name="cacheEnabled" value="{{ config.cacheEnabled }}">
+						<label style="margin-bottom: 0;" for="_cacheEnabled">Enabled</label>
 					</div>
 					<div class="form-group">
 						<label for="cacheTimeout">Timeout</label>
@@ -315,7 +328,7 @@
 				</div>
 			</div>
 			<div class="form-group mt-2">
-				<button type="submit" class="btn mt-2">{{translations.save_changes}}</button>
+				<button type="submit" class="btn btn-primary mt-2" onclick="document.getElementById('config-form').submit();">{{translations.save_changes}}</button>
 			</div>
 		</form>
 	</div>
@@ -323,10 +336,33 @@
 {% endblock %}
 {% block scripts %}
 <script>
-	document.querySelectorAll('input[type=checkbox]').forEach(function(checkbox) {
-		checkbox.addEventListener('change', function() {
-			checkbox.nextElementSibling.value = this.checked ? 'True' : 'False';
-		});
-	});
+    let formChanged = false;
+
+    // Add event listeners to all form inputs
+    document.querySelectorAll('input:not(#alert-close), select, textarea').forEach(function(input) {
+        input.addEventListener('input', function() {
+            formChanged = true;
+        });
+    });
+
+    // Add event listener to checkboxes
+    document.querySelectorAll('input[type=checkbox]').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            checkbox.nextElementSibling.value = this.checked ? 'True' : 'False';
+            formChanged = true;
+        });
+    });
+
+    // Add event listener to the form submit button
+    document.querySelector('form').addEventListener('submit', function() {
+        formChanged = false; // Reset the flag when the form is submitted
+    });
+
+    // Display the browser's default "unsaved changes" message
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.returnValue = ''; // Set a non-empty value to trigger the browser's message
+        }
+    });
 </script>
 {% endblock %}

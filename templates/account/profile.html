@@ -30,11 +30,18 @@
 		color: var(--muted);
 		font-size: 12px;
 	}
+	.dialog-head {
+		display: flex; align-items: center; justify-content: space-between;
+		margin-bottom: 1em;
+	}
+	.dialog-head h3, .dialog-head .badge {
+		margin-bottom: 0;
+	}
 </style>
 <h2>{{translations.avatar}}</h2>
 <form action="{{ url_for('changeAvatar') }}" method="POST" enctype="multipart/form-data">
 	<div class="form-group" style="flex-direction: row; align-items: center; gap: 1em;">
-				<div class="preview">
+		<div class="preview">
 			<img class="avatar" src="{{ user.avatar }}">
 			<p class="preview"></p>
 		</div>
@@ -99,15 +106,25 @@
 		<button type="submit" class="btn btn-primary mt-2" style="margin-bottom: 20px;">{{ translations.change_avatar }}</button>
 	</div>
 </form>
-
-<form action="{{ url_for('deleteCurrentAvatar') }}" method="POST">
-	<div class="form-group">
-		<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('Do you really want to delete your current avatar?')" style="margin-bottom: 20px;">{{ translations.delete_current_avatar }}</button>
+<dialog>
+	<div class="dialog-head">
+		<h3>Do you really want to delete your current avatar?</h3>
+		<span class="badge time" style="overflow: clip;"><button data-dialog-close class="btn-link-reset text-reset" title="Close"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5859 12L2.79297 4.20706L4.20718 2.79285L12.0001 10.5857L19.793 2.79285L21.2072 4.20706L13.4143 12L21.2072 19.7928L19.793 21.2071L12.0001 13.4142L4.20718 21.2071L2.79297 19.7928L10.5859 12Z"></path></svg></button></span>
 	</div>
-</form>
+	<form action="{{ url_for('deleteCurrentAvatar') }}" method="POST">
+		<div class="form-group" style="flex-direction: row; justify-content: end; gap: .5em;">
+			<button type="button" data-dialog-close class="btn">{{ translations.cancel }}</button>
+			<button type="submit" class="btn btn-danger">{{ translations.delete_current_avatar }}</button>
+		</div>
+	</form>
+</dialog>
+<div class="form-group">
+	<button class="btn btn-danger mt-2" data-dialog-open style="margin-bottom: 20px;">{{ translations.delete_current_avatar }}</button>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
 	const easyMDE = new EasyMDE({element: document.getElementById('bio')});
 </script>
+<script src="{{ url_for('static', filename='js/dialog.js') }}"></script>
 {% endblock %}

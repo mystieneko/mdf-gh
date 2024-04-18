@@ -7,8 +7,8 @@
     "registerRequestLimit": "30",
     "titleLengthLimit": "300",
     "slugLengthLimit": "300",
-    "theme": "dark.css",
-    "iconUrl": "/static/img/mdf_favicon.svg",
+    "theme": "auto.css",
+    "iconUrl": "/static/img/mdf_favicon.png",
     "adminContact": "",
     "cacheEnabled": "False",
     "cacheTimeout": "3600",
@@ -27,5 +27,6 @@
     "showPostDateInList": "True",
     "minimalMode": "False",
     "requireAccountApproval": "True",
-    "minimumTitleLength": "4"
+    "minimumTitleLength": "4",
+    "postsPerPage": "10"
 }
