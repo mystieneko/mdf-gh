@@ -37,17 +37,23 @@ this is needed to ensure that load_dotenv() loads .env file from the right
 path, because load_dotenv() without arguments doesn't work with WSGI
 """
 env_path = Path.cwd() / ".env"
+# loading env variables
 load_dotenv(dotenv_path=env_path)
 
+# main config
 config = loadJSON(MAIN_CONFIG_FILE)
+# config for cactus.chat (for post comments)
 cactusConfig = loadJSON(CACTUS_CONFIG_FILE)
+# config values are strings, so we need to convert some of them to integers
 config['cacheTimeout'] = int(config['cacheTimeout'])
 
+# cache config for cached routes
 cache_config = {
     "DEBUG": True,
     "CACHE_TYPE": "SimpleCache",
     "CACHE_DEFAULT_TIMEOUT": 300
 }
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("APP_SECRET")
@@ -58,13 +64,14 @@ app.config.update(config)
 app.config["AUTOESCAPE"] = True
 cache = Cache(app)
 
+# if no preferred theme found, default to auto.css
 @app.before_request
 def before_request():
     if not session.get('theme'):
-        session['theme'] = 'dark.css'
+        session['theme'] = 'auto.css'
 
+# making a list of themes from ./static/css/themes directory
 themes = {}
-
 themes_dir = './static/css/themes/'
 
 for filename in os.listdir(themes_dir):
@@ -89,6 +96,7 @@ def create_database(cursor, dbname):
 @app.cli.command("init-db")
 def initdb():
     dbname = input("Enter database name (default: mdflare): ")
+    # if dbname is empty, default to "mdflare"
     if not dbname:
         dbname = "mdflare"
 
@@ -112,7 +120,7 @@ def initdb():
         cursor = cnx.cursor()
         app.logger.info("Successfully connected to database %s", dbname)
     except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR: # if "access denied" error occurred
             app.logger.error('Invalid credentials')
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
             cnx = mysql.connector.connect(user=db_user, password=db_pass, host=db_host, database='mysql')
@@ -185,7 +193,8 @@ def inject_tohtml():
 
 app.context_processor(inject_version)
 
-@app.template_filter() 
+# template filter for converting markdown to html
+@app.template_filter()
 def render_markdown(text):
     plugins = ['strikethrough', 'footnotes', 'table', 'url', 'task_lists', 'abbr', 'mark', 'superscript', 'subscript', 'spoiler']
     allowed_tags = ['p','blockquote','table','tr','td','caption','thead','tbody','th','tfoot','col','colgroup','em','abbr','section','table','strong','input','div','sup','sub','ul','li','h1','h2','h3','h4','h5','h6','ol','a','b','em','strong','i','del','audio','source','br','code','pre','s','img','hr']
@@ -211,6 +220,7 @@ def render_markdown(text):
 
 @app.route('/admin/', methods=['GET', 'POST'])
 def admin():
+    # if user is not logged in and is not an administrator, throw a 403 error
     if not (session.get('user') and session['user_role'] == 'administrator'):
         abort(403)
     if request.method == 'POST':
@@ -822,23 +832,46 @@ def index():
 def rssFeed():
     fg = FeedGenerator()
     fg.title(config['blogName'])
-    formatted_desc = render_markdown(config['blogDesc'])
+    blog_desc = config['blogDesc']
+    if not blog_desc:
+        blog_desc = config.get('defaultDesc', '<no description>')
+        print(blog_desc)
+    formatted_desc = render_markdown(blog_desc)
     fg.description(formatted_desc)
     fg.link(href=config['blogDomain'])
     
     posts = getAllPosts() # Custom query to get all posts
 
+    conn = connect()
+    cursor = conn.cursor()
+    
     for post in posts:
         fe = fg.add_entry()
         fe.id(str(post['id']))
         fe.title(post['title'])
         formatted_content = render_markdown(post['content'])
-        fe.content(formatted_content)
         fe.link(href=url_for("post", slug=post["slug"]))
-        with_tz = str(pytz.utc.localize(post["created"]))
-        fe.pubDate(with_tz)
+        fe.pubDate(str(pytz.utc.localize(post["created"])))
+        
+        if post['authors']:
+            placeholders = ', '.join(['%s'] * len(post['authors']))
+            author_query = f'''SELECT name FROM users WHERE name IN ({placeholders})'''
+            cursor.execute(author_query, post['authors'])
+            authors_info = cursor.fetchall()
+            author_info = [{'name': author[0]} for author in authors_info]
+            author_names = ', '.join(author[0] for author in authors_info)
+            formatted_content = f"Authors: {author_names}\n\n{formatted_content}"
+            for author in author_info:
+                print(author['name'])
+                fg.author(name=author['name'])
+                fg.contributor(name=author['name'])
+        fe.content(formatted_content)
+
+    cursor.close()
+    conn.close()
 
     return fg.rss_str(pretty=True)
+
 
 @app.route('/about/')
 def about():

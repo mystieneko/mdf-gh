@@ -78,7 +78,7 @@ def getAllPosts():
     cursor = conn.cursor()
     
     query = '''SELECT p.id, p.title, p.slug, p.content, 
-                           p.created, p.tags,
+                           p.created, p.tags, p.authors,
                            DATE_FORMAT(p.created, %s) AS created_date  
                       FROM posts p
                       ORDER BY p.created DESC'''
@@ -95,7 +95,8 @@ def getAllPosts():
            "content": row[3],
            "created": row[4],
            "tags": row[5].split(','),
-           "created_formatted": row[6]
+           "authors": row[6].split(','),
+           "created_formatted": row[7]
         }
 
         posts.append(post)
