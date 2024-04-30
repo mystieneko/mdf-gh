@@ -16,7 +16,8 @@ CREATE TABLE posts (
 	slug TEXT NOT NULL,
 	content TEXT NOT NULL,
 	tags TEXT NOT NULL,
-	authors TEXT NOT NULL
+	authors TEXT NOT NULL,
+	categories TEXT NOT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE users (

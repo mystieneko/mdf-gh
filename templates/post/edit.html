@@ -19,6 +19,11 @@
 				</div>
 			</div>
 			<div class="form-group">
+				<input type="text" name="cats"
+				placeholder="{{translations.cats_input}}" class="form-control"
+				value="{{ request.form['cats'] or ', '.join(post['categories']) }}">
+			</div>
+			<div class="form-group">
 				<input type="text" name="tags"
 				placeholder="{{translations.tags_input}}" class="form-control"
 				value="{{ request.form['tags'] or ', '.join(post['tags']) }}"></input>
@@ -35,15 +40,25 @@
 			<div class="form-group form-actions" style="flex-direction: row; justify-content: space-between; align-items: center;">
 				<button type="submit" class="btn btn-primary mt-2">{{translations.save_and_return}}</button>
 			</form>
-
-			<form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
-				<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('{{translations.post_delete_confirm}}')">{{translations.delete_post}}</button>
-			</form>
+			<dialog>
+				<div class="dialog-head">
+					<h3>{{ translations.post_delete_confirm }}</h3>
+					<span class="badge time" style="overflow: clip;"><button type="button" data-dialog-close class="btn-link-reset text-reset" title="Close"><i class="ri-close-large-line"></i></button></span>
+				</div>
+				<form class="delete" action="{{ url_for('delete', slug=post['slug']) }}" method="POST">
+					<div class="form-group" style="flex-direction: row;justify-content: end;gap: 0.5em;align-items: center;">
+						<button type="button" onclick="//document.querySelector('dialog').close();" class="btn" data-dialog-close>{{ translations.cancel }}</button>
+						<button type="submit" class="btn btn-danger">{{translations.delete}}</button>
+					</div>
+				</form>
+			</dialog>
+			<button type="button" data-dialog-open class="btn btn-danger mt-2">{{translations.delete_post}}</button>
 		</div>
 	</div>
 </div>
 {% endblock %}
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/dialog.js') }}"></script>
 <script>
 	const easyMDE = new EasyMDE({element: document.getElementById('post-content-input')});
 </script>

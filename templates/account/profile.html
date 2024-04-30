@@ -106,9 +106,10 @@
 		<button type="submit" class="btn btn-primary mt-2" style="margin-bottom: 20px;">{{ translations.change_avatar }}</button>
 	</div>
 </form>
+{% if user.avatar != '/static/avatars/default.svg' %}
 <dialog>
 	<div class="dialog-head">
-		<h3>Do you really want to delete your current avatar?</h3>
+		<h3>{{ translations.avatar_delete_confirm }}</h3>
 		<span class="badge time" style="overflow: clip;"><button data-dialog-close class="btn-link-reset text-reset" title="Close"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5859 12L2.79297 4.20706L4.20718 2.79285L12.0001 10.5857L19.793 2.79285L21.2072 4.20706L13.4143 12L21.2072 19.7928L19.793 21.2071L12.0001 13.4142L4.20718 21.2071L2.79297 19.7928L10.5859 12Z"></path></svg></button></span>
 	</div>
 	<form action="{{ url_for('deleteCurrentAvatar') }}" method="POST">
@@ -121,6 +122,7 @@
 <div class="form-group">
 	<button class="btn btn-danger mt-2" data-dialog-open style="margin-bottom: 20px;">{{ translations.delete_current_avatar }}</button>
 </div>
+{% endif %}
 {% endblock %}
 {% block scripts %}
 <script>

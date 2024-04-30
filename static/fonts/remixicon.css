@@ -9,7 +9,7 @@
 @font-face {
     font-family: "remixicon";
     src:
-    url("remixicon.woff2?t=1712774411684") format("woff2");
+    url("remixicon.woff2?t=1714225203864") format("woff2");
     font-display: swap;
 }
 
@@ -49,9 +49,12 @@
 .ri-quill-pen-fill:before { content: "\f049"; }
 .ri-link:before { content: "\eeb2"; }
 .ri-links-line:before { content: "\eeb8"; }
-.ri-rss-line:before { content: "\f09f"; }
+.ri-rss-fill:before { content: "\f09e"; }
 .ri-global-line:before { content: "\edcf"; }
 .ri-palette-fill:before { content: "\efc4"; }
-.ri-close-large-line:before { content: "\f4c8"; }
 .ri-lock-password-fill:before { content: "\eecf"; }
 .ri-arrow-left-line:before { content: "\ea60"; }
+.ri-close-large-line:before { content: "\f4c8"; }
+.ri-folders-fill:before { content: "\ed89"; }
+.ri-hashtag:before { content: "\edfc"; }
+.ri-loop-right-fill:before { content: "\f33e"; }

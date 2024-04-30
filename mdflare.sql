@@ -24,7 +24,8 @@ CREATE TABLE `posts` (
   `slug` text NOT NULL,
   `content` text NOT NULL,
   `tags` text NOT NULL,
-  `authors` text NOT NULL
+  `authors` text NOT NULL,
+  `categories` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `users` (
@@ -39,7 +40,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `is_approved`, `role`, `avatar_url`, `bio`) VALUES
-(1, 'admin', 'admin@example.com', '$2b$12$TLPAvGga9O5KWalbc9dowO3EqIVE7CRIp0YXSp3ZA1qQen/.sFkua', 1, 'administrator', '/static/avatars/default.svg', NULL);
+(1, 'admin', 'admin@example.com', '$2b$12$vCPKvlKpvDZ7EEyJb0VhGOJvP5WKNrp9zwAZ5Efp0eZHquVkawwDO', 1, 'administrator', '/static/avatars/default.svg', NULL);
 
 
 ALTER TABLE `pages`

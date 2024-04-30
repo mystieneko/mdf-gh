@@ -160,11 +160,21 @@
 								</form>
 							</dialog>
 							<span class="badge time" style="overflow: clip;"><button data-dialog-open class="btn-link-reset text-reset" title="Change password"><svg width="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8H20C20.5523 8 21 8.44772 21 9V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V9C3 8.44772 3.44772 8 4 8H6V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V8ZM16 8V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V8H16ZM11 14V16H13V14H11ZM7 14V16H9V14H7ZM15 14V16H17V14H15Z"></path></svg></button></span>
-							<form method="POST" class="delete_user">
+						<dialog>
+							<div class="dialog-head">
+								<h3>Are you sure you want to delete user {{ user.name }} (ID {{ user.id }})?</h3>
+								<span class="badge time" style="overflow: clip;"><button data-dialog-close class="btn-link-reset text-reset" title="Close"><i class="ri-close-large-line"></i></button></span>
+							</div>
+							<form method="POST">
 								<input type="hidden" name="action" value="delete_user">
 								<input type="hidden" name="user_id" value="{{ user.id }}">
-								<span class="badge time" style="overflow: clip;"><button type="submit" class="btn btn-link-reset text-reset btn-danger" title="Delete {{ user.name }} (ID {{ user.id }})" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button></span>
+								<div class="form-group" style="flex-direction: row;justify-content: end;gap: 0.5em;align-items: center;">
+									<button type="button" onclick="//document.querySelector('dialog').close();" class="btn" data-dialog-close>{{ translations.cancel }}</button>
+									<button type="submit" class="btn btn-danger">{{ translations.delete }}</button>
+								</div>
 							</form>
+						</dialog>
+						<button title="Delete {{ user.name }} (ID {{ user.id }})" data-dialog-open class="btn btn-danger btn-link-reset text-reset">{{ translations.delete }}</button>
 						</div>
 					</td>
 				</tr>

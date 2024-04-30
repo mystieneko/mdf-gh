@@ -25,15 +25,25 @@
 			<div class="form-group form-actions" style="flex-direction: row; justify-content: space-between; align-items: center;">
 				<button type="submit" class="btn btn-primary mt-2">{{translations.save_and_return}}</button>
 			</form>
-
-			<form class="delete" action="{{ url_for('deletePage', slug=page['slug']) }}" method="POST">
-				<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('{{translations.page_delete_confirm}}')">{{translations.delete_page}}</button>
-			</form>
+			<dialog>
+				<div class="dialog-head">
+					<h3>{{ translations.page_delete_confirm }}</h3>
+					<span class="badge time" style="overflow: clip;"><button type="button" data-dialog-close class="btn-link-reset text-reset" title="Close"><i class="ri-close-large-line"></i></button></span>
+				</div>
+				<form class="delete" action="{{ url_for('deletePage', slug=page['slug']) }}" method="POST">
+					<div class="form-group" style="flex-direction: row;justify-content: end;gap: 0.5em;align-items: center;">
+						<button type="button" onclick="//document.querySelector('dialog').close();" class="btn" data-dialog-close>{{ translations.cancel }}</button>
+						<button type="submit" class="btn btn-danger">{{translations.delete}}</button>
+					</div>
+				</form>
+			</dialog>
+			<button type="button" data-dialog-open class="btn btn-danger mt-2">{{translations.delete_page}}</button>
 		</div>
 	</div>
 </div>
 {% endblock %}
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/dialog.js') }}"></script>
 <script>
 	const easyMDE = new EasyMDE({element: document.getElementById('post-content-input')});
 </script>

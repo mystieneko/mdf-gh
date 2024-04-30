@@ -8,96 +8,43 @@
 }
 /* im sorry but why the fuck do i need to import font variations one by one??? */
 @font-face {
-	font-display: swap; 
-	font-family: 'DM Sans';
+	font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 400;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-regular.woff2') format('woff2');
+	src: url('../../fonts/manrope/manrope-v15-cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
+/* manrope-500 - cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese */
 @font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: italic;
-	font-weight: 400;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-italic.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
+	font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 500;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-500.woff2') format('woff2');
+	src: url('../../fonts/manrope/manrope-v15-cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese-500.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
+/* manrope-600 - cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese */
 @font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: italic;
-	font-weight: 500;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-500italic.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
+	font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 600;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-600.woff2') format('woff2');
+	src: url('../../fonts/manrope/manrope-v15-cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
+/* manrope-700 - cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese */
 @font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: italic;
-	font-weight: 600;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-600italic.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
+	font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 700;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-700.woff2') format('woff2');
+	src: url('../../fonts/manrope/manrope-v15-cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese-700.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
-
+/* manrope-800 - cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese */
 @font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: italic;
-	font-weight: 700;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-700italic.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
+	font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+	font-family: 'Manrope';
 	font-style: normal;
 	font-weight: 800;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-800.woff2') format('woff2');
-}
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: italic;
-	font-weight: 800;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-800italic.woff2') format('woff2');
-}
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: normal;
-	font-weight: 900;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-900.woff2') format('woff2');
-}
-@font-face {
-	font-display: swap;
-	font-family: 'DM Sans';
-	font-style: italic;
-	font-weight: 900;
-	src: url('../../fonts/dmsans/dm-sans-v15-latin-900italic.woff2') format('woff2');
+	src: url('../../fonts/manrope/manrope-v15-cyrillic_cyrillic-ext_greek_latin_latin-ext_vietnamese-800.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 
 :root, ::backdrop {
@@ -120,7 +67,7 @@
 	--muted: #b9b9b9;
 	--input-outline: 1px solid var(--btn-hover-bg);
 	--link-hover: #0071b5;
-	--heading-font: "DM Sans";
+	--heading-font: "Manrope";
 	--font: "Cantarell";
 	--content-font: sans-serif;
 	--border-radius: 3px;
@@ -134,12 +81,10 @@
 	--post-content-color: #dedede;
 	--fourth-bg: #33333399;
 }
-#alert-close {
-	margin: 0;
-}
 .btn-primary {
 	background: var(--primary-bg);
 	color: var(--primary-color);
+	font-weight: 500;
 }
 .btn-primary:hover {
 	background: var(--primary-bg-hover);
@@ -167,14 +112,24 @@ input[type="checkbox"]:not(#alert-close, :checked)::before {
 	color-scheme: dark;
 }
 h1:not(.post-title h1), h2, h3:not(.post-title h3), h4, h5, h6,
-.post-title *, .card-title, .post-content * {
-	font-weight: 400;
+.post-title *, .card-title {
+	font-weight: 500;
 }
 code {
 	background: var(--bg);
 }
 #flb_search::placeholder {
 	color: var(--muted);
+}
+#logged-in-msg {
+	padding: .5em 1.1em !important;
+}
+nav menuitem > menu {
+	padding: 5px 0;
+}
+#logged-in-menu menu menuitem a {
+	padding: .45em 1em;
+	border-radius: 0;
 }
 .badges .btn-link-reset span {
 	display: none;
@@ -259,6 +214,10 @@ color: var(--danger-color);
 }
 
 @media (max-width: 800px) {
+	input[type="checkbox"] + input + label, input[type="checkbox"] + label, input[type="checkbox"],
+	.btn, .cactus-button, .btn-link-reset:hover {
+		cursor: defaultb;
+	}
 	:root {
 		--container-max-width: 100vw;
 	}

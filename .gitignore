@@ -12,6 +12,7 @@ config/cactus.json
 static/avatars/*.*
 !static/avatars/default.svg
 flb*.*
+mdf*.*
 smtptest.py
 __pycache__/
 venv/

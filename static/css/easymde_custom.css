@@ -369,14 +369,14 @@ div.CodeMirror-dragcursors {
     visibility: visible;
 }
 .CodeMirror-selected {
-    background: Highlight;
+    background: Highlight !important;
     color: HighlightText;
 }
 .CodeMirror-selectedtext {
-    color: HighlightText;
+    color: HighlightText !important;
 }
 .CodeMirror-focused .CodeMirror-selected {
-    background: Highlight;
+    background: Highlight !important;
     color: HighlightText;
 }
 .CodeMirror-focused {
@@ -527,10 +527,12 @@ div.CodeMirror-dragcursors {
     min-width: 30px;
     padding: 0 6px;
     white-space: nowrap;
+    border-radius: var(--border-radius);
 }
 .editor-toolbar button.active,
 .editor-toolbar button:hover {
-    color: var(--accent);
+/*    color: var(--accent);*/
+    background: var(--third-bg);
 }
 .editor-toolbar i.separator {
     display: inline-block;

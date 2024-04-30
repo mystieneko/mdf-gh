@@ -32,6 +32,9 @@ from constants import *
 
 """ general stuff """
 
+lang = None
+translations = None
+
 """
 this is needed to ensure that load_dotenv() loads .env file from the right
 path, because load_dotenv() without arguments doesn't work with WSGI
@@ -67,16 +70,18 @@ cache = Cache(app)
 # if no preferred theme found, default to auto.css
 @app.before_request
 def before_request():
+    global lang, translations
     if not session.get('theme'):
         session['theme'] = 'auto.css'
+    lang = session.get('lang') or config['defaultLangShort'] or 'en'  # Set the global lang variable
+    translations = loadJSON(f"translations/strings_{lang}.json")
 
 # making a list of themes from ./static/css/themes directory
 themes = {}
-themes_dir = './static/css/themes/'
 
-for filename in os.listdir(themes_dir):
+for filename in os.listdir(THEMES_DIR):
     if filename.endswith(".css"):
-        theme_file_path = os.path.join(themes_dir, filename)
+        theme_file_path = os.path.join(THEMES_DIR, filename)
         with open(theme_file_path, 'r') as css_file:
             css_content = css_file.read()
             theme_match = re.search(r'/\* @theme\s+(.*?)\s*\*/', css_content)
@@ -175,8 +180,7 @@ def internalservererror(error):
 
 @app.context_processor
 def inject_translations():
-    lang = session.get('lang') or config['defaultLangShort'] or 'en'
-    translations = loadJSON(f"translations/strings_{lang}.json")
+    global lang, translations
     return dict(translations=translations, lang=lang)
 
 @app.context_processor
@@ -220,6 +224,7 @@ def render_markdown(text):
 
 @app.route('/admin/', methods=['GET', 'POST'])
 def admin():
+    global translations
     # if user is not logged in and is not an administrator, throw a 403 error
     if not (session.get('user') and session['user_role'] == 'administrator'):
         abort(403)
@@ -232,7 +237,7 @@ def admin():
                 config[key] = request.form[key]
         saveJSON(config, MAIN_CONFIG_FILE)
         app.config.update(config)
-        flash('Changes saved!', 'success')
+        flash(translations['changes_saved'], 'success')
         return redirect(url_for('admin'))
     else:
         # Render the admin page with editable inputs
@@ -241,6 +246,7 @@ def admin():
 
 @app.route('/admin/users/', methods=['GET', 'POST'])
 def admin_users():
+    global translations
     if not (session.get('user') and session['user_role'] == 'administrator'):
         abort(403)
 
@@ -268,7 +274,7 @@ def admin_users():
             user_id = request.form['user_id']
                 
             if new_password != confirm_password:
-                flash('Passwords do not match')
+                flash(translations['passwords_dont_match'])
                 
             new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
             
@@ -337,6 +343,7 @@ def accountSettings():
 
 @app.route('/account/profile/', methods=['GET', 'POST'])
 def profileSettings():
+    global translations
     if not session.get('user'):
         return redirect(url_for('login'))
 
@@ -351,7 +358,7 @@ def profileSettings():
             username_exists = cursor.fetchone()
 
             if username_exists:
-                flash('This username is already taken')
+                flash(translations['username_taken'])
                 return render_template('account/profile.html')
 
             # update username
@@ -362,7 +369,7 @@ def profileSettings():
             cursor.close()
             conn.close()
 
-            flash('Username changed successfully!')
+            flash(translations['username_changed'])
             session['user'] = new_username
             return redirect(request.referrer)
 
@@ -450,6 +457,7 @@ def accountAuth():
 
 @app.route('/account/change_password/', methods=['POST'])
 def changePassword():
+    global translations
     if not session.get('user'):
         return redirect(url_for('index'))
     if request.method == 'POST':
@@ -464,11 +472,11 @@ def changePassword():
         user = cursor.fetchone()
             
         if not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
-            flash('Current password is incorrect')
+            flash(translations['current_password_incorrect'])
             return render_template('account/base.html')
             
         if new_password != confirm_password:
-            flash('New passwords do not match')
+            flash(translations['passwords_dont_match'])
             return render_template('account/base.html')
             
         new_hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
@@ -481,13 +489,14 @@ def changePassword():
         conn.commit()
         cursor.close()
         conn.close()
-        flash('Password changed successfully!')
+        flash(translations['password_changed'])
         
         session.pop('user', None)
         return redirect(url_for('login'))
 
 @app.route('/account/delete_account/', methods=['POST'])
 def deleteAccount():
+    global translations
     if not session.get('user'):
         return redirect(url_for('index'))
     if request.method == 'POST':
@@ -500,12 +509,13 @@ def deleteAccount():
         cursor.execute('''SELECT * FROM users
             WHERE name=%s''', (session['user'],))  
         user = cursor.fetchone()
-        
+        # incorrect password
         if current_password and not bcrypt.checkpw(current_password.encode('utf-8'), user[3].encode('utf-8')):
-            flash('Password is incorrect')
+            flash(translations['password_incorrect'])
             return redirect(url_for('accountSecurity'))
+        # no current password
         elif not current_password:
-            flash('Enter your password for confirmation')
+            flash(translations['enter_password_for_confirmation'])
             return redirect(url_for('accountSecurity'))
 
         # delete account
@@ -517,7 +527,7 @@ def deleteAccount():
         conn.close()
 
         session.pop('user', None)
-        flash('Your account was successfully deleted.')
+        flash(translations['account_delete_success'])
         return redirect(url_for('login'))
 
 """ author routes """
@@ -555,6 +565,7 @@ user_requests = {}
 
 @app.route('/signup/', methods=['GET', 'POST'])
 def register():
+    global translations
     if config["registrationsOpened"] == "True":
         # if session.get('user'):
         #     flash("Why are you trying to register while logged in???")
@@ -589,19 +600,20 @@ def register():
             email_regex = r'^\w+[\+\.\w-]*@([\w-]+\.)*\w+[\w-]*\.([a-z]{2,24}|\d+)$'
 
             if not re.match(email_regex, email):
-                flash('Invalid email')
+                flash(translations['invalid_email'])
                 return redirect(url_for('register'))
 
             password = request.form['password']
             confirm_password = request.form['confirm_password']
+            # passwords dont match
             if (password != confirm_password):
-                flash('Passwords do not match!')
+                flash(translations['passwords_dont_match'])
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
             captcha = int(request.form['captcha'])
 
             if captcha != 15:
-                flash('Incorrect CAPTCHA, please try again.')
+                flash(translations['incorrect_captcha'])
                 return redirect(url_for('register'))
 
             #role = request.form['role']
@@ -638,22 +650,22 @@ def register():
 
         return render_template('auth/register.html', expression=expression)
     else:
-        flash("Registrations are closed")
+        flash(translations['registration_closed'])
         return redirect(url_for('index'))
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
-
+    global lang, translations
     if request.method == 'POST':
-        # user[3] == password, user[4] == is_approved, user[5] == role
-        name = request.form['name']
+        # user[1] = name, user[3] == password, user[4] == is_approved, user[5] == role
+        name_or_email = request.form['name_or_email']
         password = request.form['password']
 
         # Check credentials and fetch user
         conn = connect()
         cursor = conn.cursor()
         cursor.execute('''SELECT * FROM users  
-                          WHERE name=%s''', (name,))
+                          WHERE name=%s OR email=%s''', (name_or_email, name_or_email))
         user = cursor.fetchone()
 
         if user and (config['requireAccountApproval'] == "False" or user[4] == 1 or (user[5] == 'user')) and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
@@ -667,11 +679,11 @@ def login():
                 session.permanent = False
 
             # If valid credentials, set user in session
-            session['user'] = name
+            session['user'] = user[1]
             session['user_approved'] = 1
             session['user_id'] = user[0]
             session['user_role'] = user[5]
-            flash("Successfully logged in!")
+            flash(translations['logged_in_msg'])
             return redirect(url_for('index'))
         elif user and not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
             flash("Wrong password")
@@ -815,15 +827,14 @@ def passwordResetSuccess():
 @app.route('/logout/')  
 def logout():
     if session.get('user'):
-        session.pop('user', None)
-        session.pop('user_approved', None)
-        session.pop('user_role', None)
-    return redirect(request.referrer)
+        session.clear()
+    return redirect(url_for('index'))
 
 """ general routes """
 
 @app.route('/')
 def index():
+    global lang, translations
     if config['minimalMode'] == "True":
         return redirect(url_for('posts'))
     return render_template('index.html', to_html=mistune.html)
@@ -835,7 +846,6 @@ def rssFeed():
     blog_desc = config['blogDesc']
     if not blog_desc:
         blog_desc = config.get('defaultDesc', '<no description>')
-        print(blog_desc)
     formatted_desc = render_markdown(blog_desc)
     fg.description(formatted_desc)
     fg.link(href=config['blogDomain'])
@@ -862,7 +872,6 @@ def rssFeed():
             author_names = ', '.join(author[0] for author in authors_info)
             formatted_content = f"Authors: {author_names}\n\n{formatted_content}"
             for author in author_info:
-                print(author['name'])
                 fg.author(name=author['name'])
                 fg.contributor(name=author['name'])
         fe.content(formatted_content)
@@ -959,11 +968,18 @@ def create():
             title = request.form['title']
             content = request.form['content']
             slug = request.form['slug']
+            blacklist = readPlainFile('common_blacklist.txt')
 
             tags_str = request.form['tags']
             tags_str = tags_str.lower().strip()
             tags = tags_str.split(',')
             tags = [t.strip() for t in tags]
+            tags = [generateSlug(t) for t in tags]
+
+            cats_str = request.form['cats']
+            cats_str = cats_str.strip()
+            cats = cats_str.split(',')
+            cats = [c.strip() for c in cats]
 
             authors_str = request.form['authors']
             authors_str = authors_str.lower().strip()
@@ -974,6 +990,10 @@ def create():
                 slug = generateSlug(slug)
             else:
                 slug = generateSlug(title)
+
+            if slug in blacklist:
+                flash("This slug is not allowed!")
+                return redirect(url_for('create'))
 
             slug_exists = getPost(slug) is not None
 
@@ -998,13 +1018,14 @@ def create():
                 conn = connect()
                 cursor = conn.cursor()
                 tags_str = ','.join(tags)
+                cats_str = ','.join(cats)
                 authors_str = ','.join(authors)
 
                 insert_sql = """INSERT INTO posts  
-                (title, content, slug, tags, authors)
-                VALUES (%s, %s, %s, %s, %s)"""
+                (title, content, slug, tags, authors, categories)
+                VALUES (%s, %s, %s, %s, %s, %s)"""
 
-                cursor.execute(insert_sql, (title, content, slug, tags_str, authors_str))
+                cursor.execute(insert_sql, (title, content, slug, tags_str, authors_str, cats_str))
                 conn.commit()
 
                 cursor.close()
@@ -1026,9 +1047,16 @@ def edit(slug):
             title = request.form['title']
             content = request.form['content']
             newslug = request.form['slug']
+
+            new_cats_str = request.form['cats']
+            new_cats_str = new_cats_str.strip()
+            new_cats = [c.strip() for c in new_cats_str.split(',')]
+
             new_tags_str = request.form['tags']
             new_tags_str = new_tags_str.lower().strip()
             new_tags = [t.strip() for t in new_tags_str.split(',')]
+            new_tags = [generateSlug(t) for t in new_tags_str.split(',')]
+
             new_authors_str = request.form['authors']
             new_authors_str = new_authors_str.lower().strip()
             new_authors = [a.strip() for a in new_authors_str.split(',')]
@@ -1052,10 +1080,10 @@ def edit(slug):
                 cursor = conn.cursor()
                 
                 sql = """UPDATE posts  
-                         SET title=%s, content=%s, slug=%s, tags=%s, authors=%s
+                         SET title=%s, content=%s, slug=%s, tags=%s, authors=%s, categories=%s
                          WHERE slug=%s"""
                  
-                cursor.execute(sql, (title, content, newslug, ','.join(new_tags), ','.join(new_authors), slug))
+                cursor.execute(sql, (title, content, newslug, ','.join(new_tags), ','.join(new_authors), ','.join(new_cats), slug))
                 conn.commit()
                 
                 cursor.close()
@@ -1140,6 +1168,15 @@ def tag(tag):
   
     return render_template('tag.html', posts=posts, tag=tag, posts_count=posts_count)
 
+@app.route('/category/<category>/')
+@cached
+def category(category):
+
+    posts = getPosts({'category': category})
+    posts_count = len(getPosts({'category': category}))
+  
+    return render_template('category.html', posts=posts, category=category, posts_count=posts_count)
+
 @app.route('/<slug>/')
 @cached
 def post(slug):
@@ -1185,11 +1222,16 @@ def createPage():
             title = request.form['title']
             content = request.form['content']
             slug = request.form['slug']
+            blacklist = readPlainFile('common_blacklist.txt')
 
             if slug:
                 slug = generateSlug(slug)
             else:
                 slug = generateSlug(title)
+
+            if slug in blacklist:
+                flash("This slug is not allowed!")
+                return redirect(url_for('createPage'))
 
             slug_exists = getPage(slug) is not None
 
@@ -1201,10 +1243,10 @@ def createPage():
 
             if not title:
                 flash('Title is required!')
-                return redirect(url_for('createPage', title=title, content=content))
+                return redirect(url_for('createPage'))
             if len(title) < 5:
                 flash('Title is too short!')
-                return redirect(url_for('createPage', title=title, content=content))
+                return redirect(url_for('createPage'))
             if len(title) > int(config["titleLengthLimit"]):
                 flash('Title is too long! (' + str(len(title)) + " characters out of " + config["titleLengthLimit"] + " allowed)")
             if len(slug) > int(config["slugLengthLimit"]):
@@ -1224,8 +1266,8 @@ def createPage():
                 cursor.close()
                 conn.close()
 
-                flash(Markup('Page created! View it <a href="' + url_for('page', slug=slug) + '">here</a>'))
-                return redirect(url_for('index'))
+                flash('Page created!')
+                return redirect(url_for('post', slug=slug))
         return render_template('page/create.html')
     else:
         abort(403)

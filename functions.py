@@ -17,6 +17,13 @@ def saveJSON(config_dict, config_name):
     with open(config_name, 'w', encoding="utf-8") as file:
         json.dump(config_dict, file, indent=4)
 
+def readPlainFile(file):
+    if os.path.exists(file):
+        with open(file, 'r', encoding="utf-8") as file:
+            return file.read().splitlines()
+    else:
+        return []
+
 config = loadJSON(MAIN_CONFIG_FILE)
 
 def connect():
@@ -36,7 +43,7 @@ def getPost(slug):
     cursor = conn.cursor()
 
     query = '''SELECT p.id, p.title, p.slug, p.content,
-               p.created, p.tags, p.authors, DATE_FORMAT(p.created, %s) AS created
+               p.created, p.tags, p.authors, p.categories, DATE_FORMAT(p.created, %s) AS created
                FROM posts p WHERE p.slug = %s'''
 
     cursor.execute(query, (config['dateFormat'], slug,))
@@ -48,15 +55,17 @@ def getPost(slug):
         return None
 
     post = {
-        'id': row[0],
-        'title': row[1],
-        'slug': row[2],
-        'content': row[3],
-        'created': row[4],
-        'tags': row[5].split(','),
-        'authors': row[6].split(','),
-        'created_formatted': row[7]
+        "id": row[0],
+        "title": row[1],
+        "slug": row[2],
+        "content": row[3],
+        "created": row[4],
+        "tags": row[5].split(','),
+        "authors": row[6].split(','),
+        "categories": row[7].split(','),
+        "created_formatted": row[8]
     }
+    print("(getPost) ", post)
 
     # If there are authors, fetch their details from the users table
     if post['authors']:
@@ -78,7 +87,7 @@ def getAllPosts():
     cursor = conn.cursor()
     
     query = '''SELECT p.id, p.title, p.slug, p.content, 
-                           p.created, p.tags, p.authors,
+                           p.created, p.tags, p.authors, p.categories,
                            DATE_FORMAT(p.created, %s) AS created_date  
                       FROM posts p
                       ORDER BY p.created DESC'''
@@ -96,7 +105,8 @@ def getAllPosts():
            "created": row[4],
            "tags": row[5].split(','),
            "authors": row[6].split(','),
-           "created_formatted": row[7]
+           "categories": row[7].split(','),
+           "created_formatted": row[8]
         }
 
         posts.append(post)
@@ -112,6 +122,9 @@ def getPosts(filters=None):
     if filters and 'tag' in filters:
         tagged = [post for post in posts if filters['tag'] in post['tags']]
         return tagged
+    elif filters and 'category' in filters:
+        with_category = [post for post in posts if filters['category'] in post['categories']]
+        return with_category
     else:
         return posts
 

@@ -23,13 +23,26 @@
 </form>
 <h1 style="color: var(--danger-color)">{{translations.danger_zone}}</h1>
 <h2 style="color: var(--danger-color)">{{translations.delete_account}}</h2>
-<form action="{{ url_for('deleteAccount') }}" method="POST">
+<dialog>
+	<div class="dialog-head">
+		<h3>Are you sure you want to delete your account? This action cannot be undone.</h3>
+		<span class="badge time" style="overflow: clip;"><button data-dialog-close class="btn-link-reset text-reset" title="Close"><i class="ri-close-large-line"></i></button></span>
+	</div>
+	<form action="{{ url_for('deleteAccount') }}" method="POST">
 	<div class="form-group">
 		<label for="currentpass_d">{{translations.password}}</label>
 		<input required class="form-control" type="password" id="currentpass_d" name="currentpass_d" value="{{ request.form['currentpass_d'] }}">
 	</div>
-	<div class="form-group">
-		<button type="submit" class="btn btn-danger mt-2" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">{{translations.delete_account}}</button>
-	</div>
-</form>
+		<div class="form-group" style="flex-direction: row;justify-content: end;gap: 0.5em;align-items: center;">
+			<button type="button" onclick="//document.querySelector('dialog').close();" class="btn" data-dialog-close>{{ translations.cancel }}</button>
+			<button type="submit" class="btn btn-danger">{{ translations.delete_account }}</button>
+		</div>
+	</form>
+</dialog>
+<div class="form-group">
+	<button data-dialog-open class="btn btn-danger">{{ translations.delete_account }}</button>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dialog.js') }}"></script>
 {% endblock %}

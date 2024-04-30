@@ -20,6 +20,14 @@
 	<title>{% block title %} {% endblock %}</title>
 </head>
 <body>
+	<style>
+		.settings select {
+		    padding: 0;
+		    background: 0 0;
+		    margin: 0;
+		    font-size: 12px;
+		}
+	</style>
 	{% if config.serifTitle == "True" %}
 	<style>
 		.post-title h1, .post-title h3 {
@@ -27,16 +35,9 @@
 		}
 	</style>
 	{% endif %}
-	{% if theme_name == "minimal_dark.css" %}
-	<style>
-		.drop-open::before {
-			content: '{{translations.menu}}';
-		}
-	</style>
-	{% endif %}
 	<nav class="navbar">
 		<div class="main-content" style="cursor: default;">
-			<div class="nav-links" style="display: flex;">
+			<div class="nav-links" style="display: flex; align-items: center;">
 				<a class="navbar-brand nav-link" href="{{ url_for('index')}}">
 					{% if config['iconUrl'] | length > 0 %}
 					<img src="{{ config.iconUrl }}" width="24">
@@ -59,11 +60,43 @@
 				<nav style="display: flex; justify-content: flex-end; color: var(--muted);">
 					<menu>
 						<menuitem id="logged-in-menu">
-
-							<a class="drop-open"><svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg></a>
+				            <input type="checkbox" id="drop-open-checkbox" class="drop-open" style="display: none;">
+				            <!-- Label for the checkbox -->
+				            <label for="drop-open-checkbox" class="drop-open-label" style="margin: 0;">
+				                <svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg>
+				            </label>
 							<menu>
+								{% if config['allowChangingTheme'] == "True" or config['allowChangingLanguage'] == "True" %}
+								<menuitem>
+									<div class="settings" style="display: flex;gap: .3em;padding: 3px .8em;">
+										{% if config['allowChangingLanguage'] == "True" %}
+										<form id="language-form" action="{{ url_for('changeLang') }}" style="display: flex;justify-content: center;align-items: center;gap: 1em;" method="POST">
+											<div class="form-group" style="flex-direction: row;gap: .3em;">
+												<!-- <svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM9.71002 19.6674C8.74743 17.6259 8.15732 15.3742 8.02731 13H4.06189C4.458 16.1765 6.71639 18.7747 9.71002 19.6674ZM10.0307 13C10.1811 15.4388 10.8778 17.7297 12 19.752C13.1222 17.7297 13.8189 15.4388 13.9693 13H10.0307ZM19.9381 13H15.9727C15.8427 15.3742 15.2526 17.6259 14.29 19.6674C17.2836 18.7747 19.542 16.1765 19.9381 13ZM4.06189 11H8.02731C8.15732 8.62577 8.74743 6.37407 9.71002 4.33256C6.71639 5.22533 4.458 7.8235 4.06189 11ZM10.0307 11H13.9693C13.8189 8.56122 13.1222 6.27025 12 4.24799C10.8778 6.27025 10.1811 8.56122 10.0307 11ZM14.29 4.33256C15.2526 6.37407 15.8427 8.62577 15.9727 11H19.9381C19.542 7.8235 17.2836 5.22533 14.29 4.33256Z"></path></svg> -->
+												<select class="form-control" id="language" name="language" onchange="document.getElementById('language-form').submit();">
+													<option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+													<option value="ru" {% if lang == 'ru' %}selected{% endif %}>Русский</option>
+												</select>
+											</div>
+										</form>
+										{% endif %}
+										{% if config['allowChangingTheme'] == "True" %}
+										<form action="{{ url_for('changeTheme') }}" id="theme-form" method="POST">
+											<div class="form-group" style="flex-direction: row;gap: .3em;">
+												<!-- <svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M12 2C17.5222 2 22 5.97778 22 10.8889C22 13.9556 19.5111 16.4444 16.4444 16.4444H14.4778C13.5556 16.4444 12.8111 17.1889 12.8111 18.1111C12.8111 18.5333 12.9778 18.9222 13.2333 19.2111C13.5 19.5111 13.6667 19.9 13.6667 20.3333C13.6667 21.2556 12.9 22 12 22C6.47778 22 2 17.5222 2 12C2 6.47778 6.47778 2 12 2ZM7.5 12C8.32843 12 9 11.3284 9 10.5C9 9.67157 8.32843 9 7.5 9C6.67157 9 6 9.67157 6 10.5C6 11.3284 6.67157 12 7.5 12ZM16.5 12C17.3284 12 18 11.3284 18 10.5C18 9.67157 17.3284 9 16.5 9C15.6716 9 15 9.67157 15 10.5C15 11.3284 15.6716 12 16.5 12ZM12 9C12.8284 9 13.5 8.32843 13.5 7.5C13.5 6.67157 12.8284 6 12 6C11.1716 6 10.5 6.67157 10.5 7.5C10.5 8.32843 11.1716 9 12 9Z"></path></svg> -->
+												<select class="form-control" name="theme-change" onchange="document.getElementById('theme-form').submit();">
+													{% for key, value in themes.items() %}
+													<option value="{{ value }}" {% if session.get('theme') == value %}selected{% endif %}>{{ key }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										</form>
+										{% endif %}
+									</div>
+								</menuitem>	
+								{% endif %}
 								{% if session['user'] %}
-								<menuitem style="font-size: 12px; color: var(--muted); padding: .5em .9em;">
+								<menuitem style="font-size: 12px; color: var(--muted); padding: .5em .9em;" id="logged-in-msg">
 									{{translations.logged_in_as}} <b>{{ session['user'] }}</b>
 								</menuitem>
 								{% endif %}
@@ -106,6 +139,35 @@
 						<menuitem id="logged-in-menu">
 							<a class="drop-open"><svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4H21V6H3V4ZM3 11H21V13H3V11ZM3 18H21V20H3V18Z"></path></svg></a>
 							<menu>
+								{% if config['allowChangingTheme'] == "True" or config['allowChangingLanguage'] == "True" %}
+								<menuitem>
+									<div class="settings" style="display: flex;gap: .3em;padding: 0 0.4em;">
+										{% if config['allowChangingLanguage'] == "True" %}
+										<form id="language-form" action="{{ url_for('changeLang') }}" style="display: flex;justify-content: center;align-items: center;gap: 1em;" method="POST">
+											<div class="form-group" style="flex-direction: row;gap: .3em;">
+												<!-- <svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM9.71002 19.6674C8.74743 17.6259 8.15732 15.3742 8.02731 13H4.06189C4.458 16.1765 6.71639 18.7747 9.71002 19.6674ZM10.0307 13C10.1811 15.4388 10.8778 17.7297 12 19.752C13.1222 17.7297 13.8189 15.4388 13.9693 13H10.0307ZM19.9381 13H15.9727C15.8427 15.3742 15.2526 17.6259 14.29 19.6674C17.2836 18.7747 19.542 16.1765 19.9381 13ZM4.06189 11H8.02731C8.15732 8.62577 8.74743 6.37407 9.71002 4.33256C6.71639 5.22533 4.458 7.8235 4.06189 11ZM10.0307 11H13.9693C13.8189 8.56122 13.1222 6.27025 12 4.24799C10.8778 6.27025 10.1811 8.56122 10.0307 11ZM14.29 4.33256C15.2526 6.37407 15.8427 8.62577 15.9727 11H19.9381C19.542 7.8235 17.2836 5.22533 14.29 4.33256Z"></path></svg> -->
+												<select class="form-control" id="language" name="language" onchange="document.getElementById('language-form').submit();">
+													<option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+													<option value="ru" {% if lang == 'ru' %}selected{% endif %}>Русский</option>
+												</select>
+											</div>
+										</form>
+										{% endif %}
+										{% if config['allowChangingTheme'] == "True" %}
+										<form action="{{ url_for('changeTheme') }}" id="theme-form" method="POST">
+											<div class="form-group" style="flex-direction: row;gap: .3em;">
+												<!-- <svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M12 2C17.5222 2 22 5.97778 22 10.8889C22 13.9556 19.5111 16.4444 16.4444 16.4444H14.4778C13.5556 16.4444 12.8111 17.1889 12.8111 18.1111C12.8111 18.5333 12.9778 18.9222 13.2333 19.2111C13.5 19.5111 13.6667 19.9 13.6667 20.3333C13.6667 21.2556 12.9 22 12 22C6.47778 22 2 17.5222 2 12C2 6.47778 6.47778 2 12 2ZM7.5 12C8.32843 12 9 11.3284 9 10.5C9 9.67157 8.32843 9 7.5 9C6.67157 9 6 9.67157 6 10.5C6 11.3284 6.67157 12 7.5 12ZM16.5 12C17.3284 12 18 11.3284 18 10.5C18 9.67157 17.3284 9 16.5 9C15.6716 9 15 9.67157 15 10.5C15 11.3284 15.6716 12 16.5 12ZM12 9C12.8284 9 13.5 8.32843 13.5 7.5C13.5 6.67157 12.8284 6 12 6C11.1716 6 10.5 6.67157 10.5 7.5C10.5 8.32843 11.1716 9 12 9Z"></path></svg> -->
+												<select class="form-control" name="theme-change" onchange="document.getElementById('theme-form').submit();">
+													{% for key, value in themes.items() %}
+													<option value="{{ value }}" {% if session.get('theme') == value %}selected{% endif %}>{{ key }}</option>
+													{% endfor %}
+												</select>
+											</div>
+										</form>
+										{% endif %}
+									</div>
+								</menuitem>	
+								{% endif %}
 								{% if session['user'] %}
 								<menuitem style="font-size: 12px; color: var(--muted); padding: .5em .9em;">
 									{{translations.logged_in_as}} <b>{{ session['user'] }}</b>
@@ -150,36 +212,9 @@
 	<footer class="text-center">
 		<div class="container">
 			<div class="links" style="cursor: default;display: flex; justify-content: center;align-items: center; gap: 2em;">
-				<a href="{{url_for('rssFeed')}}" style="margin: 0;font-size: 0px;color: var(--muted);" title="RSS"><svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3C12.9411 3 21 11.0589 21 21H18C18 12.7157 11.2843 6 3 6V3ZM3 10C9.07513 10 14 14.9249 14 21H11C11 16.5817 7.41828 13 3 13V10ZM3 17C5.20914 17 7 18.7909 7 21H3V17Z"></path></svg></a>
-				{% if config['allowChangingTheme'] == "True" or config['allowChangingLanguage'] == "True" %}
-				<div class="settings" style="display: flex;gap: .8em;">
-					{% if config['allowChangingLanguage'] == "True" %}
-					<form id="language-form" action="{{ url_for('changeLang') }}" style="display: flex;justify-content: center;align-items: center;gap: 1em;" method="POST">
-						<div class="form-group" style="flex-direction: row;gap: .3em;">
-							<svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM9.71002 19.6674C8.74743 17.6259 8.15732 15.3742 8.02731 13H4.06189C4.458 16.1765 6.71639 18.7747 9.71002 19.6674ZM10.0307 13C10.1811 15.4388 10.8778 17.7297 12 19.752C13.1222 17.7297 13.8189 15.4388 13.9693 13H10.0307ZM19.9381 13H15.9727C15.8427 15.3742 15.2526 17.6259 14.29 19.6674C17.2836 18.7747 19.542 16.1765 19.9381 13ZM4.06189 11H8.02731C8.15732 8.62577 8.74743 6.37407 9.71002 4.33256C6.71639 5.22533 4.458 7.8235 4.06189 11ZM10.0307 11H13.9693C13.8189 8.56122 13.1222 6.27025 12 4.24799C10.8778 6.27025 10.1811 8.56122 10.0307 11ZM14.29 4.33256C15.2526 6.37407 15.8427 8.62577 15.9727 11H19.9381C19.542 7.8235 17.2836 5.22533 14.29 4.33256Z"></path></svg>
-							<select class="form-control" id="language" name="language" onchange="document.getElementById('language-form').submit();">
-								<option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
-								<option value="ru" {% if lang == 'ru' %}selected{% endif %}>Русский</option>
-							</select>
-						</div>
-					</form>
-					{% endif %}
-					{% if config['allowChangingTheme'] == "True" %}
-					<form action="{{ url_for('changeTheme') }}" id="theme-form" method="POST">
-						<div class="form-group" style="flex-direction: row;gap: .3em;">
-							<svg width="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--muted)"><path d="M12 2C17.5222 2 22 5.97778 22 10.8889C22 13.9556 19.5111 16.4444 16.4444 16.4444H14.4778C13.5556 16.4444 12.8111 17.1889 12.8111 18.1111C12.8111 18.5333 12.9778 18.9222 13.2333 19.2111C13.5 19.5111 13.6667 19.9 13.6667 20.3333C13.6667 21.2556 12.9 22 12 22C6.47778 22 2 17.5222 2 12C2 6.47778 6.47778 2 12 2ZM7.5 12C8.32843 12 9 11.3284 9 10.5C9 9.67157 8.32843 9 7.5 9C6.67157 9 6 9.67157 6 10.5C6 11.3284 6.67157 12 7.5 12ZM16.5 12C17.3284 12 18 11.3284 18 10.5C18 9.67157 17.3284 9 16.5 9C15.6716 9 15 9.67157 15 10.5C15 11.3284 15.6716 12 16.5 12ZM12 9C12.8284 9 13.5 8.32843 13.5 7.5C13.5 6.67157 12.8284 6 12 6C11.1716 6 10.5 6.67157 10.5 7.5C10.5 8.32843 11.1716 9 12 9Z"></path></svg>
-							<select class="form-control" name="theme-change" onchange="document.getElementById('theme-form').submit();">
-								{% for key, value in themes.items() %}
-								<option value="{{ value }}" {% if session.get('theme') == value %}selected{% endif %}>{{ key }}</option>
-								{% endfor %}
-							</select>
-						</div>
-					</form>
-					{% endif %}
-				</div>
-				{% endif %}
+				<a href="{{url_for('rssFeed')}}" style="margin: 0;color: var(--muted);text-decoration: none;" title="RSS" class="small"><i class="ri-rss-fill"></i> {{ translations.rss }} </a>
 			</div>
-			<p class="small powered-by" style="cursor: default; color: var(--muted);">{{translations.powered_by}} {{ app_name }} {{ version_mod_left }}{{ version }}{{ version_mod_right }} <span>·</span> <a href="{{url_for('about')}}" class="text-reset">{{translations.about_app}}</a> <span>·</span> <a href="https://codeberg.org/mystie/MDFlare" target="_blank" class="text-reset">{{translations.source_code}}</a></p>
+			<p class="small powered-by" style="cursor: default; color: var(--muted);">{{translations.powered_by}} {{ app_name }} {{ version_mod_left }} {{ version }}{{ version_mod_right }} <span>·</span> <a href="{{url_for('about')}}" class="text-reset">{{translations.about_app}}</a> <span>·</span> <a href="https://codeberg.org/mdflare-org/MDFlare" target="_blank" class="text-reset">{{translations.source_code}}</a></p>
 		</div>
 	</footer>
 	{% block scripts %} {% endblock %}

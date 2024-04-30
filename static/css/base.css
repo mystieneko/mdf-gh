@@ -181,6 +181,7 @@ dialog select.form-control {
 }
 .navbar-brand span {
 	color: var(--color);
+	font-family: var(--heading-font);
 }
 .text-center {
 	text-align: center;
@@ -191,6 +192,9 @@ dialog select.form-control {
 	display: flex;
 	gap: 5px;
 	align-items: center;
+}
+.badge [class^="ri-"], .badge [class*="ri-"] {
+	font-size: 16px;
 }
 /*.badges .badge, .badge {
 	margin-bottom: 10px;
@@ -335,7 +339,7 @@ small, .small {
     justify-content: center;
     margin: 1em auto;
 }
-.post-content,  .card-body p, li {
+.post-content,  .card-body p:not(.posts-count), li {
 	font-family: var(--content-font);
 }
 select, .author-info p {
@@ -438,7 +442,7 @@ menu hr {
 	opacity: 0.1;
 	margin: 5px 0;
 }
-.drop-open {
+.drop-open, .drop-open-label {
 	padding: .65em;
 	margin: 0;
 	background: 0 0;
@@ -449,7 +453,8 @@ menu hr {
 	font-size: 14px;
     border-radius: var(--border-radius);
 }
-.drop-open:hover, menuitem:hover > .drop-open {
+.drop-open:hover, menuitem:hover > .drop-open,
+.drop-open-label:hover {
 	background: var(--third-bg);
 	color: var(--color);
 }
@@ -491,78 +496,99 @@ menu hr {
 }
 
 /* for dropdown */
+/* Ensure menuitem is always visible */
 nav menuitem {
-	position: relative;
-	display: block;
-	opacity: 0;
-	transition: var(--transition);
+    position: relative;
+    display: block;
+    opacity: 1;
+    transition: var(--transition);
 }
 
+/* Position the menu */
 nav menuitem > menu {
-	position: absolute;
-	pointer-events: none;
-	z-index: 2;
-	right: 0;
-	padding: 5px;
-	transition: var(--transition);
-	min-width: 144px;
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    right: 0;
+    padding: 5px;
+    transition: var(--transition);
+    min-width: 144px;
+    display: none; /* Hide the menu by default */
+}
+
+/* Display menuitem and menu when checkbox is checked */
+.drop-open:checked ~ menu,
+.drop-open:checked ~ menu[open] {
+    display: block;
+}
+
+/* Adjust opacity and pointer events for hover and open states */
+menuitem:hover > menu,
+.drop-open:checked ~ menu,
+menu[open] {
+    opacity: 1;
+    pointer-events: initial;
+    background: var(--third-bg);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
 }
 menuitem > menu {
 	padding: 5px;
 }
-nav > menu {
-	display: flex;
-}
 
-nav > menu > menuitem, menu[open] {
-	pointer-events: all;
-	opacity: 1;
-}
-
+/* Style links */
 menu menuitem a {
-	white-space: nowrap;
-	text-decoration: none;
-	display: flex;
-	gap: .6em;
-	color: var(--color);
-	padding: 0.45em 0.8em;
-	text-align: left;
-	border-radius: var(--border-radius);
-	transition: var(--transition);
-	font-size: 14px;
+    white-space: nowrap;
+    text-decoration: none;
+    display: flex;
+    gap: .6em;
+    color: var(--color);
+    padding: 0.45em 0.8em;
+    text-align: left;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    font-size: 14px;
 }
+
+/* Additional styles for account menu */
 .account menu menuitem a {
-	gap: .3em;
-	flex-direction: column;
-	align-items: center;
+    gap: .3em;
+    flex-direction: column;
+    align-items: center;
 }
+
 .account menu menuitem a svg {
-	width: 28px;
+    width: 28px;
 }
+
 .account menu menuitem a.selected svg,
 .account menu menuitem a:hover svg {
-	fill: currentColor;
+    fill: currentColor;
 }
-menuitem:hover > menu, menu[open] {
-	pointer-events:initial;
-	background: var(--third-bg);
-	border-radius: var(--border-radius);
+
+/* Adjust hover styles */
+menu menuitem a:hover,
+menu menuitem a.selected {
+    background: var(--btn-bg);
+    color: var(--color);
 }
-menu menuitem a:hover, menu menuitem a.selected {
-	background: var(--btn-bg);
-	color: var(--color);
-}
+
+/* Adjust submenu styles */
 menuitem:hover > menu > menuitem,
-menu:hover > menuitem, menu[open] {
-	opacity: 1;
-	color: var(--color);
-	transition: var(--transition);
+menu:hover > menuitem,
+menu[open] {
+    opacity: 1;
+    color: var(--color);
+    transition: var(--transition);
 }
+
+/* Position submenu */
 nav > menu > menuitem menuitem menu {
-	transform: translateX(100%);
-	top: 0;
-	right: 0;
+    transform: translateX(100%);
+    top: 0;
+    right: 0;
 }
+
 
 @media (prefers-reduced-motion: reduce) {
 	:root {
@@ -653,9 +679,9 @@ nav > menu > menuitem menuitem menu {
 	.card, .post-comments {
 		width: 100% !important;
 	}
-	.alert {
+/*	.alert {
 		max-width: 95%;
-	}
+	}*/
 	.post-comments {
 		margin: auto;
 	}

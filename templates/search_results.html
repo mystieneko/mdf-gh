@@ -4,7 +4,7 @@
 	<h2 class="text-center">{% block title %}{{translations.search_results_for}} "{{ search_query }}"{% endblock %}</h2>
 </div>
 {% if posts | length > 0 %}
-<p class="small text-center">{{ posts_count }} {% if posts_count > 1 and posts_count < 5 %} {{translations.post_2}} {% elif posts_count >= 5 %} {{translations.post_3}} {% else %} {{translations.post}} {% endif %}</p>
+<p class="small text-center posts-count">{{ posts_count }} {% if posts_count > 1 and posts_count < 5 %} {{translations.post_2}} {% elif posts_count >= 5 %} {{translations.post_3}} {% else %} {{translations.post}} {% endif %}</p>
 <div class="posts">
 	{% for post in posts %}
 	<div class="card post-list mt-2">

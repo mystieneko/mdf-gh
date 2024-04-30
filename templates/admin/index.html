@@ -43,6 +43,10 @@
 		<div class="badges">
 			<a class="badge time btn-link-reset text-reset" href="{{ url_for('admin_currentconf') }}"><i class="ri-eye-fill"></i> {{translations.current_configuration}}</a>
 		</div>
+		<p class="expl">
+			<br><br>
+			<i class="ri-loop-right-fill"></i> — might take a server restart to apply
+		</p>
 		<form action="{{ url_for('admin') }}" method="POST" id="config-form">
 			<div class="posts">
 				<div class="category">
@@ -152,17 +156,17 @@
 					<div class="form-group">
 						<label for="titleLengthLimit">Title Length Limit</label>
 						<input class="form-control" type="number" name="titleLengthLimit" id="titleLengthLimit" value="{{ config.titleLengthLimit }}">
-						<p class="expl">Length limit for post title in symbols.</p>
+						<p class="expl">Length limit for post title in symbols. <i class="ri-loop-right-fill"></i></p>
 					</div>
 					<div class="form-group">
 						<label for="slugLengthLimit">Slug Length Limit</label>
 						<input class="form-control" type="number" name="slugLengthLimit" id="slugLengthLimit" value="{{ config.slugLengthLimit }}">
-						<p class="expl">Length limit for post slug in symbols.</p>
+						<p class="expl">Length limit for post slug in symbols. <i class="ri-loop-right-fill"></i></p>
 					</div>
 					<div class="form-group">
 						<label for="minimumTitleLength">Minimum Title Length</label>
 						<input class="form-control" type="number" name="minimumTitleLength" id="minimumTitleLength" value="{{ config.minimumTitleLength }}">
-						<p class="expl">Minimum title length for post/page in symbols.</p>
+						<p class="expl">Minimum title length for post/page in symbols. <i class="ri-loop-right-fill"></i></p>
 					</div>
 				</div>
 				<hr class="mobile">
@@ -185,7 +189,7 @@
 					<div class="form-group">
 						<label for="postsPerPage">Posts per page</label>
 						<input class="form-control" type="number" name="postsPerPage" id="postsPerPage" value="{{ config.postsPerPage }}">
-						<p class="expl">How many posts per page to show.</p>
+						<p class="expl">How many posts per page to show. <i class="ri-loop-right-fill"></i></p>
 					</div>
 					<div class="form-group" style="flex-direction: row;margin: 10px 0;gap: .5em;align-items: center;">
 						<input 
@@ -328,7 +332,7 @@
 				</div>
 			</div>
 			<div class="form-group mt-2">
-				<button type="submit" class="btn btn-primary mt-2" onclick="document.getElementById('config-form').submit();">{{translations.save_changes}}</button>
+				<button type="submit" id="save-button" class="btn btn-primary mt-2" onclick="document.getElementById('config-form').submit();">{{translations.save_changes}}</button>
 			</div>
 		</form>
 	</div>
@@ -339,19 +343,26 @@
     let formChanged = false;
 
     // Add event listeners to all form inputs
-    document.querySelectorAll('input:not(#alert-close), select, textarea').forEach(function(input) {
+    document.querySelectorAll('input:not(.alert-close), select, textarea').forEach(function(input) {
         input.addEventListener('input', function() {
             formChanged = true;
         });
     });
 
     // Add event listener to checkboxes
-    document.querySelectorAll('input[type=checkbox]').forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-            checkbox.nextElementSibling.value = this.checked ? 'True' : 'False';
-            formChanged = true;
-        });
-    });
+	document.querySelectorAll('input[type=checkbox]').forEach(function(checkbox) {
+	    checkbox.addEventListener('change', function() {
+	        if (!checkbox.classList.contains('alert-close')) { // Add this condition
+	            checkbox.nextElementSibling.value = this.checked ? 'True' : 'False';
+	            formChanged = true;
+	        }
+	    });
+	});
+
+	// Add event listener to the save button
+	document.getElementById('save-button').addEventListener('click', function() {
+	    formChanged = false; // Reset the flag when the save button is clicked
+	});
 
     // Add event listener to the form submit button
     document.querySelector('form').addEventListener('submit', function() {

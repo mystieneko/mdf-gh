@@ -505,7 +505,7 @@ when guestPostingEnabled=false and loginEnabled=false */
 .cactus-button:hover:not([disabled]) {
   background-color: var(--cactus-button-color--strong);
   cursor: pointer;
-  color: var(--color);
+  color: var(--btn-hover-color);
 }
 
 .cactus-button:active:not([disabled]) {

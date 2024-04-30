@@ -2,6 +2,7 @@
 {% block title %}{{translations.pages_menu}} — {{ config['blogName'] }}{% endblock %}
 {% block content %}
 {% if pages | length > 0 %}
+<div class="pages">
 {% for page in pages %}
 <div class="card post-list mt-2">
 	<div class="card-body postItem-body" style="display: flex;justify-content: space-between;align-items: center;">
@@ -10,12 +11,12 @@
 				<h3>{{ page['title'] }}</h3>
 			</a>
 			<div class="badges">
-				<span class="badge time bg-primary" style="margin-bottom: 0;"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.0607 8.11097L14.4749 9.52518C17.2086 12.2589 17.2086 16.691 14.4749 19.4247L14.1214 19.7782C11.3877 22.5119 6.95555 22.5119 4.22188 19.7782C1.48821 17.0446 1.48821 12.6124 4.22188 9.87874L5.6361 11.293C3.68348 13.2456 3.68348 16.4114 5.6361 18.364C7.58872 20.3166 10.7545 20.3166 12.7072 18.364L13.0607 18.0105C15.0133 16.0578 15.0133 12.892 13.0607 10.9394L11.6465 9.52518L13.0607 8.11097ZM19.7782 14.1214L18.364 12.7072C20.3166 10.7545 20.3166 7.58872 18.364 5.6361C16.4114 3.68348 13.2456 3.68348 11.293 5.6361L10.9394 5.98965C8.98678 7.94227 8.98678 11.1081 10.9394 13.0607L12.3536 14.4749L10.9394 15.8891L9.52518 14.4749C6.79151 11.7413 6.79151 7.30911 9.52518 4.57544L9.87874 4.22188C12.6124 1.48821 17.0446 1.48821 19.7782 4.22188C22.5119 6.95555 22.5119 11.3877 19.7782 14.1214Z"></path></svg> {{ page['slug'] }}</span>
+				<span class="badge time bg-primary" style="margin-bottom: 0;"><i class="ri-links-line"></i> {{ page['slug'] }}</span>
 			</div>
 		</div>
 		<div class="actions">
 			{% if session['user'] %}
-			<a href="{{ url_for('editPage', slug=page['slug']) }}" class="mob-mt-2 btn"><svg width="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.24264 17.9967H3V13.754L14.435 2.319C14.8256 1.92848 15.4587 1.92848 15.8492 2.319L18.6777 5.14743C19.0682 5.53795 19.0682 6.17112 18.6777 6.56164L7.24264 17.9967ZM3 19.9967H21V21.9967H3V19.9967Z"></path></svg> {{translations.edit_short}}</a>
+			<a href="{{ url_for('editPage', slug=page['slug']) }}" class="mob-mt-2 btn"><i class="ri-edit-fill"></i> {{translations.edit_short}}</a>
                 <dialog>
                     <div class="dialog-head">
                         <h3>{{ translations.page_delete_confirm }}</h3>
@@ -34,6 +35,7 @@
 	</div>
 </div>
 {% endfor %}
+</div>
 {% else %}
 <h2 class="text-center" style="margin-top: 50px;">{{translations.no_pages}} {% if session['user_role'] in ['writer', 'administrator'] %}<a href="{{url_for('createPage')}}">{{translations.create_one}}</a>{% endif %}</h2>
 {% endif %}
