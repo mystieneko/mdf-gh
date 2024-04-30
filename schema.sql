@@ -30,3 +30,6 @@ CREATE TABLE users (
 	avatar_url VARCHAR(255) DEFAULT "/static/avatars/default.svg",
 	bio TEXT
 ) ENGINE=InnoDB;
+
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `is_approved`, `role`, `avatar_url`, `bio`) VALUES
+(1, 'admin', 'admin@example.com', '$2b$12$vCPKvlKpvDZ7EEyJb0VhGOJvP5WKNrp9zwAZ5Efp0eZHquVkawwDO', 1, 'administrator', '/static/avatars/default.svg', NULL);
